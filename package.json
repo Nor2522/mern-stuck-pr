@@ -3,10 +3,23 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "scripts": {
+    "dev": "tsx watch backend/server.ts",
+    "prod": "bun --env-file=local.production.env run backend/config/env.ts && bun run backend/server.ts"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/express": "^5.0.6",
+    "dotenv-cli": "^11.0.0",
+    "nodemon": "^3.1.14",
+    "tsx": "^4.23.12"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "bson": "^7.3.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.9.3"
   }
 }
