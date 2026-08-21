@@ -4,7 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "dev": "tsx watch backend/server.ts",
+    "dev": "tsx watch server.ts",
     "prod": "bun --env-file=local.production.env run backend/config/env.ts && bun run backend/server.ts"
   },
   "devDependencies": {
