@@ -10,8 +10,35 @@ import {
 import { Label } from "./ui/label";
 import { Input } from "@base-ui/react/input";
 import { Button } from "@base-ui/react/button";
+import { useState } from "react";
+import axios from "axios";
+import { Link } from "react-router";
 
 const Register = () => {
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
+
+  const handleInputChange = (event) => {
+    setFormData({
+      ...formData,
+      [event.target.id]: event.target.value,
+    });
+  };
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    try {
+      const { data } = await axios.post(
+        "http://localhost:5000/api/auth/sign-up",
+        formData,
+      );
+      console.log("success", data)
+    } catch (err) {
+      console.error("there is an error:" + err);
+    }
+  };
   return (
     <div className="w-full">
       <Card>
@@ -21,15 +48,17 @@ const Register = () => {
           <CardAction>Sign Up</CardAction>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="name">User</Label>
                 <Input
                   id="name"
-                  type="name"
+                  type="text"
+                  name="name"
                   placeholder="Enter Your Name"
                   required
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="grid gap-2">
@@ -37,31 +66,42 @@ const Register = () => {
                 <Input
                   id="email"
                   type="email"
+                  name="email"
                   placeholder="m@example.com"
                   required
+                  onChange={handleInputChange}
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
+                  <Link
+                    to="#"
                     className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
                   >
                     Forgot your password?
-                  </a>
+                  </Link>
                 </div>
-                <Input id="password" type="password" required placeholder="Enter Your Password" />
+                <Input
+                  id="password"
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="Enter Your Password"
+                  onChange={handleInputChange}
+                />
               </div>
+            </div>
+            <div>
+              <Button
+                type="submit"
+                className="w-full bg-slate-900 text-slate-50 h-ma"
+              >
+                Sign-Up
+              </Button>
             </div>
           </form>
         </CardContent>
-        <CardFooter className="">
-       <Button type="submit" className="w-full bg-slate-900 text-slate-50">
-          Sign-Up
-        </Button>
-       
-        </CardFooter>
       </Card>
     </div>
   );
