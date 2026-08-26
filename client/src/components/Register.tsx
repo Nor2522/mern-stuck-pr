@@ -31,7 +31,7 @@ const Register = () => {
     event.preventDefault()
     try {
       const { data } = await axios.post(
-        "http://localhost:5000/api/auth/sign-up",
+        "/api/auth/sign-up",
         formData,
       );
       console.log("success", data)
