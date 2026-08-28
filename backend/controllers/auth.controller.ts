@@ -1,56 +1,82 @@
+import { type Request, type Response } from "express";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import { EXPIRE_IN, JWT_SECRET } from "../config/env";
 
-const register = async (req: any, res: any) => {
+const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
+
     const userExist = await User.findOne({ $or: [{ email }, { name }] });
     if (userExist) {
       return res.status(400).json({
-        message: "user or email already exist",
+        message: "User or email already exists",
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const user = new User({ name, email, password: hashedPassword });
     await user.save();
+
     return res.status(201).json({
-      message: "user created successfully",
+      message: "User created successfully",
       user: {
+        id: user._id,
         name: user.name,
         email: user.email,
-        id: user._id,
       },
     });
   } catch (error) {
     return res.status(500).json({
-      message: "internal server error",
+      message: "Internal server error",
     });
   }
 };
 
-const signIn = async (req: any, res: any) => {
-  const { email, password } = req.body;
- const user = await User.findOne({ email });
-  if (!user) {
-    return res.status(400).json({
-      message: "user not found",
+const signIn = async (req: Request, res: Response) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+    
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      user.password as string,
+    );
+    if (!isPasswordValid) {
+      return res.status(400).json({
+        message: "Invalid email or password",
+      });
+    }
+
+    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
+      expiresIn: EXPIRE_IN,
+    });
+
+    res.cookie("token", token, {
+      httpOnly: true, // Frontend JS ma akhrin karo (xakameynta XSS Attack)
+      secure: process.env.NODE_ENV === "production", // HTTPS oo kaliya marka lagu jiro production
+      sameSite: "strict", // Xakameynta CSRF Attack
+      maxAge: 24 * 60 * 60 * 1000, 
+    });
+
+    return res.status(200).json({
+      success:true,
+      message: "User signed in successfully",
+      token:token,
+      userData:{user}
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: `Internal server error: ${error}`,
     });
   }
-  const isPasswordValid = await bcrypt.compare(password, user.password as string);
-  if (!isPasswordValid) {
-    return res.status(400).json({
-      message: "invalid password",
-    });
-  }
-  return res.status(200).json({
-    message: "user signed in successfully",
-    user: {
-      name: user.name,
-      email: user.email,
-      id: user._id,
-    },
-  });
 };
 
 export { register, signIn };

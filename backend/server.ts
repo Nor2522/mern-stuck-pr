@@ -6,7 +6,7 @@ import connetDB from "./database/mongodb.ts"
 const app = express()
 
 app.use(express.json())
-app.use("/api/auth", authrouter)
+app.use("/api/user", authrouter)
 
   
 app.listen(PORT, async()=>{

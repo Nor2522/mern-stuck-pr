@@ -3,42 +3,52 @@ import {
   CardAction,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "./ui/label";
 import { Input } from "@base-ui/react/input";
 import { Button } from "@base-ui/react/button";
-import { useState } from "react";
-import axios from "axios";
-import { Link } from "react-router";
+import React, { useState } from "react";
+import axios, { isAxiosError } from "axios";
+import { Link, useNavigate } from "react-router";
+import toast from "react-hot-toast";
 
 const Register = () => {
+  const navigate = useNavigate()
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   });
 
-  const handleInputChange = (event) => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [event.target.id]: event.target.value,
     });
   };
-  const handleSubmit = async (event) => {
-    event.preventDefault()
+  const handleSubmit = async (event: React.SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault();
     try {
-      const { data } = await axios.post(
-        "/api/auth/sign-up",
-        formData,
-      );
-      console.log("success", data)
-    } catch (err) {
-      console.error("there is an error:" + err);
+      setIsLoading(true);
+      const { data } = await axios.post("/api/user/sign-up", formData);
+      console.log("success", data);
+      toast.success("Registration Successfuly! 🎉");
+      setIsLoading(false);
+      navigate("/login")
+    } catch (error) {
+      if (isAxiosError(error)) {
+        const errorMessage = error.response?.data?.message || error.message;
+        toast.error(errorMessage);
+      }
+      setIsLoading(false);
     }
   };
+
   return (
     <div className="w-full">
       <Card>
@@ -97,7 +107,7 @@ const Register = () => {
                 type="submit"
                 className="w-full bg-slate-900 text-slate-50 h-ma"
               >
-                Sign-Up
+                {isLoading ? "Registering.." : "Sign-Up"}
               </Button>
             </div>
           </form>
