@@ -44,7 +44,7 @@ const signIn = async (req: Request, res: Response) => {
         message: "Invalid email or password",
       });
     }
-    
+
     const isPasswordValid = await bcrypt.compare(
       password,
       user.password as string,
@@ -55,22 +55,22 @@ const signIn = async (req: Request, res: Response) => {
       });
     }
 
-    const token = jwt.sign({ userId: user._id }, JWT_SECRET, {
-      expiresIn: EXPIRE_IN,
+    const token = jwt.sign({ userId: user._id.toString() }, JWT_SECRET as string, {
+      expiresIn: EXPIRE_IN as any
     });
 
     res.cookie("token", token, {
       httpOnly: true, // Frontend JS ma akhrin karo (xakameynta XSS Attack)
       secure: process.env.NODE_ENV === "production", // HTTPS oo kaliya marka lagu jiro production
       sameSite: "strict", // Xakameynta CSRF Attack
-      maxAge: 24 * 60 * 60 * 1000, 
+      maxAge: 24 * 60 * 60 * 1000,
     });
 
     return res.status(200).json({
-      success:true,
+      success: true,
       message: "User signed in successfully",
-      token:token,
-      userData:{user}
+      token: token,
+      userData: { user },
     });
   } catch (error) {
     return res.status(500).json({
