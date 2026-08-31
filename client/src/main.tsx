@@ -2,12 +2,14 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 // 1. Ku dar RouterProvider import-ga
 import { createBrowserRouter, RouterProvider } from "react-router";
+
 import "./index.css";
 import App from "./App.tsx";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import DashBoard from "./pages/DashBoard.tsx";
 import { Toaster } from "react-hot-toast";
+import { UserProvider } from "./hooks/useUser.tsx";
 
 const router = createBrowserRouter([
   {
@@ -32,7 +34,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Toaster />
-    <RouterProvider router={router} />
+    <UserProvider>
+      <Toaster />
+      <RouterProvider router={router} />
+    </UserProvider>
   </StrictMode>,
 );

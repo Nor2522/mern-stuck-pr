@@ -13,14 +13,18 @@ import React, { useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
+import useUser from "@/hooks/useUser";
 
 const Login = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+
+  const { login } = useUser();
+ 
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -38,7 +42,8 @@ const Login = () => {
       console.log("success", data);
       toast.success("Login Successfuly! 🎉");
       setIsLoading(false);
-      navigate("/dashboard")
+      // navigate("/dashboard")
+      login(data.userData,data.expire)
     } catch (error) {
       if (isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;
@@ -59,7 +64,6 @@ const Login = () => {
         <CardContent>
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
-          
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
