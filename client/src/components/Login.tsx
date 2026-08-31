@@ -6,9 +6,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "./ui/label";
-import { Input } from "@base-ui/react/input";
-import { Button } from "@base-ui/react/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button"
 import React, { useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
@@ -95,10 +95,10 @@ const Login = () => {
                 />
               </div>
             </div>
-            <div>
+            <div className="mt-4">
               <Button
                 type="submit"
-                className="w-full bg-slate-900 text-slate-50 h-ma"
+                 className={"w-full"}
               >
                 {isLoading ? "Login.." : "Login"}
               </Button>

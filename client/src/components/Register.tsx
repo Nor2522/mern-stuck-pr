@@ -6,16 +6,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "./ui/label";
-import { Input } from "@base-ui/react/input";
-import { Button } from "@base-ui/react/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import axios, { isAxiosError } from "axios";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import toast from "react-hot-toast";
 
 const Register = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,7 +39,7 @@ const Register = () => {
       console.log("success", data);
       toast.success("Registration Successfuly! 🎉");
       setIsLoading(false);
-      navigate("/login")
+      navigate("/login");
     } catch (error) {
       if (isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;
@@ -61,7 +61,7 @@ const Register = () => {
           <form onSubmit={handleSubmit}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="name">User</Label>
+                <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
                   type="text"
@@ -83,7 +83,8 @@ const Register = () => {
                 />
               </div>
               <div className="grid gap-2">
-               
+                <Label htmlFor="password">Password</Label>
+
                 <Input
                   id="password"
                   type="password"
@@ -95,10 +96,7 @@ const Register = () => {
               </div>
             </div>
             <div>
-              <Button
-                type="submit"
-                className="w-full bg-slate-900 text-slate-50 h-ma"
-              >
+              <Button type="submit" className="mt-4 w-full">
                 {isLoading ? "Registering.." : "Sign-Up"}
               </Button>
             </div>
