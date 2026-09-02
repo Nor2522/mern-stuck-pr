@@ -9,7 +9,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
 import toast from "react-hot-toast";
@@ -23,9 +23,11 @@ const Login = () => {
     password: "",
   });
 
-  const { login } = useUser();
+  const { login, logOut, user } = useUser();
  
-
+  useEffect(()=>{
+     if(user) navigate("/")
+  },[user])
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
