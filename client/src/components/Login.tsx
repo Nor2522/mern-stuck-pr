@@ -23,7 +23,7 @@ const Login = () => {
     password: "",
   });
 
-  const { login, logOut, user } = useUser();
+  const { login, user } = useUser();
  
   useEffect(()=>{
      if(user) navigate("/")

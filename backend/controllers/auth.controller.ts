@@ -72,10 +72,11 @@ const signIn = async (req: Request, res: Response) => {
       sameSite: "strict", // Xakameynta CSRF Attack
       maxAge: ms(EXPIRE_IN),
     });
-    user.password = null;
+    user.password = "";
     return res.status(200).json({
       success: true,
       message: "User signed in successfully",
+      token:token,
       userData: { user },
       expire: ms(EXPIRE_IN),
     });

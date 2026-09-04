@@ -6,21 +6,21 @@ const Userschema = new Schema(
   {
     name: {
       type: String,
-      require: ["name is required ", true],
+      required:true,
       trim: true,
       minLength: 3,
       maxLength: 20,
     },
     email: {
       type: String,
-      require: ["email is requird ", true],
+      required: true,
       trim: true,
       unique: true,
       match: [/\S+@\S+\.\S+/, "please fill avalid email address"],
     },
     password: {
       type: String,
-      require: ["password is required ", true],
+      required:true,
       trim: true,
       minLength: 5,
     },
