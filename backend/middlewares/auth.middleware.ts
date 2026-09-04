@@ -24,14 +24,12 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
     const user = await User.findById(decoded.userId);
     console.log(user);
     if (!user)
-      return res
-        .status(401)
-        .json({
-          sucess: false,
-          message: "Unauthorazed is user is no longer exist",
-        });
-   
-    (req as any).user = user ;
+      return res.status(401).json({
+        sucess: false,
+        message: "Unauthorazed is user is no longer exist",
+      });
+
+    (req as any).user = user;
     next();
   } catch (error) {
     res.status(401).json({
@@ -43,5 +41,3 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
 };
 
 export default authorize;
-
-
