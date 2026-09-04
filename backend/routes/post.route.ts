@@ -4,6 +4,6 @@ import authorize from "../middlewares/auth.middleware";
 
 const postRouter = Router();
 postRouter.get("/", authorize, getPost);
-postRouter.post("/", createPost);
+postRouter.post("/",authorize, createPost);
 
 export default postRouter;
