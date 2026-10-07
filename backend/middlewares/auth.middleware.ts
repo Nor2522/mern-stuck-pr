@@ -5,13 +5,12 @@ import User from "../models/user.model";
 
 const authorize = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let token;
+    let token: string | undefined = req.cookies?.token;
     if (
       req.headers.authorization &&
       req.headers.authorization.startsWith("Bearer")
     ) {
       token = req.headers.authorization.split(" ")[1];
-      console.log(token);
     }
 
     if (!token)

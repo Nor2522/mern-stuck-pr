@@ -1,7 +1,10 @@
+import DailogForm from "@/components/dashboard/DailogForm"
 
 const DashBoard = () => {
   return (
-    <div>DashBoard</div>
+    <div className="flex justify-start m-4 ">
+          <DailogForm/>
+    </div>
   )
 }
 
