@@ -1,42 +1,66 @@
-import type { Request, Response,NextFunction } from "express";
-import Post from "../models/post.model";
+import type { Request, Response } from "express"
+import Post from "../models/post.model"
+import { uploadToCloudinary } from "../config/cloudinary"
 
+// get posts
 export const getPost = async (req: Request, res: Response) => {
   try {
-    const post = await Post.find();
-    res.status(200).json({ success: true, data: { post } });
+    const post = await Post.find()
+    res.status(200).json({ success: true, data: { post } })
   } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error,
-    });
+    res.status(400).json({ success: false, message: (error as Error).message })
   }
-};
+}
 
 // create post
-
 export const createPost = async (req: Request, res: Response) => {
- try {
-  const currentUser = (req as any).user 
-
- } catch (error) {
-   res.status(200).json({sucess:false,message:(error as any).message})
- }
-}
-// test 
-const test = async(req:Request,res:Response,next:NextFunction)=>{
-
-}
-
-// update posts
-
-export const updatePost=async(req:Request,res:Response)=>{
   try {
-    const {title,description} = req.body
-    const updatedPost = Post.findByIdAndUpdate({new:true},{title,description})
-    res.status(200).json({sucess:true, data:updatedPost})
+    const currentUser = (req as any).user
+    const { title, description } = req.body
+    const file = req.file // multer memoryStorage: file.buffer
+
+    if (!file) {
+      return res.status(400).json({ success: false, message: "please choose the image.." })
+    }
+
+    // 1) Cloudinary u dir, wuxuu soo celiyaa url iyo public_id
+    const result = await uploadToCloudinary(file.buffer)
+
+    // 2) Keydi post-ka: image waa object, ma aha buffer
+    const post = await Post.create({
+      title,
+      description,
+      image: {
+        url: result.secure_url,
+        publicId: result.public_id,
+      },
+      author: currentUser._id,
+    })
+
+    return res.status(201).json({ success: true, data: { post } })
   } catch (error) {
-     res.status(400).json({ success:false, message:(error as any).message})
-    
+    return res.status(500).json({ success: false, message: (error as Error).message })
+  }
+}
+
+// update post
+export const updatePost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const { title, description } = req.body
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      id, // 1aad: id-ga
+      { title, description }, // 2aad: waxa la beddelayo
+      { new: true, runValidators: true } // 3aad: options
+    )
+
+    if (!updatedPost) {
+      return res.status(404).json({ success: false, message: "Post lama helin" })
+    }
+
+    res.status(200).json({ success: true, data: { post: updatedPost } })
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as Error).message })
   }
 }

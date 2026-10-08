@@ -9,7 +9,12 @@ import postRouter from "./routes/post.route.ts"
 const app = express()
 
 // 1) CORS: oggolow frontend-ka (5173) inuu la hadlo backend-ka
-
+app.use(
+  cors({
+    origin: "http://localhost:5173", // ma aha "*", sababtoo ah cookies waa la isticmaalayaa
+    credentials: true, // oggolow cookies in la diro/la helo
+  })
+)
 
 // 2) cookie-parser: u beddel Cookie header-ka req.cookies (token-ka)
 app.use(cookieParser())
