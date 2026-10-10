@@ -2,6 +2,9 @@ import type { Request, Response } from "express"
 import Post from "../models/post.model"
 import { uploadToCloudinary } from "../config/cloudinary"
 
+
+//  author populate  
+const authorPapulate = { path:"author", select:"name email"}
 // get posts
 export const getPost = async (req: Request, res: Response) => {
   try {
@@ -9,6 +12,25 @@ export const getPost = async (req: Request, res: Response) => {
     res.status(200).json({ success: true, data: { post } })
   } catch (error) {
     res.status(400).json({ success: false, message: (error as Error).message })
+  }
+}
+
+//  get post by id 
+export const getUserPosts = async (req:Request,res:Response)=>{
+  try {
+    const currentUser = (req as any).user
+    const post = await Post.find({author:currentUser}).populate(authorPapulate).sort({ createdAt :-1})
+
+    res.status(200).json({
+      success:true,
+      data : {post}
+    })
+
+  } catch (error) {
+   res.status(200).json({
+      success:false,
+      message:(error as any).message
+    }) 
   }
 }
 

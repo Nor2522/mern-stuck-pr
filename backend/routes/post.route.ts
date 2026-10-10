@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { createPost, getPost, updatePost } from "../controllers/post.controller";
+import { createPost, getPost, updatePost, getUserPosts } from "../controllers/post.controller";
 import authorize from "../middlewares/auth.middleware";
 import upload from "../middlewares/uploade.middleware.ts";
 const postRouter = Router();
 postRouter.get("/", authorize, getPost);
+postRouter.get("/user",authorize, getUserPosts)
 postRouter.post("/",authorize,upload.single("image"), createPost);
 postRouter.put("/",authorize, updatePost)
 export default postRouter;

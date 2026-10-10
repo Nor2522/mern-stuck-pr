@@ -7,7 +7,11 @@ const postSchema = new mongoose.Schema({
     url: { type: String, required: true },
     publicId: { type: String, required: true }, // loo baahan yahay marka sawirka la tirtirayo
   },
-}, { timestamps: true });
+author: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },}, { timestamps: true });
 const Post = mongoose.model("post", postSchema);
 
 export default Post;
