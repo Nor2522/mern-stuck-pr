@@ -37,12 +37,13 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T1.1 | Post model upgrade and public API | DONE | _(see git log)_ | `Category` + public `/api/categories`; `Post` upgraded (category/tags/status/counts/optional image/indexes); public `GET /post` list (pagination/search/filter/sort) + `GET /post/:id`; zod validators; seed + backfill scripts run |
 | T1.2 | Frontend foundation (layout, routing, data layer) | DONE | _(see git log)_ | `@tanstack/react-query` + `zod` + `@hookform/resolvers` + `date-fns`; cookie-based `AuthProvider`/`useAuth` (session from `/user/me`), 401 interceptor; `Navbar`/`Footer` + mobile Sheet + light/dark toggle; route map + guards + 404; API types; backend `/me` + login now return `role`/`avatar`/`bio` |
 | T1.3 | Home page | DONE | _(see git log)_ | Hero (role-aware CTA), Latest posts (6 `PostCard`s, skeleton/empty/error), category chips, How it works, final CTA; react-query hooks + Cloudinary optimized URLs + date-fns |
-| T1.4 | Explore and post detail | DONE | _(see git log)_ | `/explore`: debounced search, category chips, latest/popular sort, pagination — all state in the URL. `/posts/:id`: full post, author card, tags, 404 state, login-prompting like/comment/bookmark placeholders. Per-page `<title>`. New `Pagination` UI + `usePosts`/`usePost` hooks |
+| T1.4 | Explore and post detail | DONE | _(see git log)_ | `/explore`: debounced search, category chips, latest/popular sort, pagination — all state in the URL. `/posts/:id`: full post, author card, tags, 404 state. Per-page `<title>`. New `Pagination` UI + `usePosts`/`usePost` hooks |
+| T2.0 | Reactions + share (pulled forward from T2.3–T2.5) | DONE | _(see git log)_ | Real **likes**, **comments**, **bookmarks** on every post + a **share** menu on each card & detail. New `Like`/`Comment`/`Bookmark` models, `like`/`comment`/`bookmark` controllers + routes, `optionalAuth`; `#comments` section, `/saved` list |
 | T2.1 | Auth pages | TODO | — | — |
 | T2.2 | Create, edit, delete posts | TODO | — | — |
-| T2.3 | Likes | TODO | — | — |
-| T2.4 | Comments | TODO | — | — |
-| T2.5 | Bookmarks (Saved) | TODO | — | — |
+| T2.3 | Likes | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
+| T2.4 | Comments | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
+| T2.5 | Bookmarks (Saved) | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.6 | Profile | TODO | — | — |
 | T2.7 | Report content | TODO | — | — |
 | T3.1 | Admin layout and dashboard | TODO | — | — |
@@ -123,7 +124,34 @@ Pre-existing lint findings (baseline, target for T0.2):
   category `ai`) created as `t14temp<ts>@example.com` to push the list past one
   page, then **deleted** (feed back to the original 5). The temp *user* remains
   (like the earlier `t12test` user); deleting it needs your approval.
-
+- **T2.0 — reactions + share pulled forward.** The T1.4 like/comment/bookmark
+  placeholders on `/posts/:id` are now real, and every post card/detail has a
+  **share** menu. New backend: `Like`/`Comment`/`Bookmark` models (unique
+  `{user,post}` indexes), `like`/`comment`/`bookmark` controllers + routes
+  (`POST /post/:id/like`, `POST /post/:id/bookmark`, `GET|POST
+  /post/:id/comments`, `DELETE /comment/:id`, `GET /bookmarks`), and an
+  `optionalAuth` middleware so lists/detail attach `likedByMe`/`bookmarkedByMe`
+  for signed-in users. Client: `features/posts/api.ts` (`useToggleLike`,
+  `useToggleBookmark`, `useBookmarks`), `features/comments/api.ts`
+  (`useComments` infinite, `useAddComment`, `useDeleteComment`), `PostActions`
+  (compact on cards, `full` on detail), `ShareMenu` (X/Facebook/LinkedIn/
+  WhatsApp + copy + native share) and a `#comments` `CommentsSection`.
+  `PostCard` footer actions were moved **outside** the wrapping `Link` to avoid
+  nested interactive elements.
+- **T2.0 — lucide brand icons unavailable:** `Twitter`/`Facebook`/`Linkedin` are
+  `undefined` in this lucide-react build; `ShareMenu` uses `AtSign`/`Globe`/
+  `Briefcase` instead (WhatsApp uses `MessageCircle`).
+- **T2.0 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. Live headless: logged-out `/explore` and
+  `/posts/:id` show share/like/save/comment buttons (5 cards) + a login gate in
+  comments, zero app console errors; `/` shows 5 share icons; `/saved` redirects
+  to `/login` when logged out. Authenticated via CDP (cookie injected): detail
+  showed `1Like`/liked state + comment textarea (no login prompt), clicking
+  Like/Save toggled correctly, and a comment posted through the UI rendered with
+  author + relative time. Backend curl: like 401→toggle true/false, comments
+  401/400/201/list/delete (+403 cross-user), bookmarks 401/toggle/list. Test
+  residue (comment/like/bookmark) removed — post counts back to `0/0`,
+  bookmarks `0`.
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
   `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and

@@ -7,6 +7,8 @@ import authrouter from "./routes/auth.route.ts"
 import connectDB from "./database/mongodb.ts"
 import postRouter from "./routes/post.route.ts"
 import categoryRouter from "./routes/category.route.ts"
+import commentRouter from "./routes/comment.route.ts"
+import bookmarkRouter from "./routes/bookmark.route.ts"
 import { errorHandler, notFound } from "./middlewares/error.middleware.ts"
 
 const app = express()
@@ -34,6 +36,8 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/user", authrouter)
 app.use("/api/post", postRouter)
 app.use("/api/categories", categoryRouter)
+app.use("/api/comment", commentRouter)
+app.use("/api/bookmarks", bookmarkRouter)
 
 // 404 + global error handler (waa inay ugu dambeeyaan)
 app.use(notFound)

@@ -1,8 +1,7 @@
 import axios from "axios"
-import { Link, useNavigate, useParams } from "react-router"
+import { Link, useParams } from "react-router"
 import { format, formatDistanceToNow } from "date-fns"
-import { ArrowLeft, Bookmark, Heart, MessageSquare } from "lucide-react"
-import { toast } from "sonner"
+import { ArrowLeft } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -10,10 +9,10 @@ import { Separator } from "@/components/ui/separator"
 import { Skeleton } from "@/components/ui/skeleton"
 import NotFoundPage from "./NotFoundPage"
 import { usePost } from "@/features/posts/api"
-import { useAuth } from "@/features/auth/auth-context"
+import { PostActions } from "@/features/posts/components/PostActions"
+import { CommentsSection } from "@/features/comments/components/CommentsSection"
 import { getOptimizedImageUrl } from "@/lib/image"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
-import { cn } from "cn"
 
 const initials = (name: string) => name.trim().charAt(0).toUpperCase() || "?"
 
@@ -34,25 +33,12 @@ const PostDetailSkeleton = () => (
 
 const PostDetailPage = () => {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
-  const { user } = useAuth()
   const { data: post, isLoading, isError, error, refetch } = usePost(id)
 
   const status = axios.isAxiosError(error) ? error.response?.status : undefined
   const isNotFound = isError && status === 404
 
-  useDocumentTitle(
-    post ? post.title : isNotFound ? "Post not found" : "Post",
-  )
-
-  const handlePending = (label: string) => {
-    if (!user) {
-      toast.error("Please log in to continue")
-      navigate("/login", { state: { from: `/posts/${id}` } })
-      return
-    }
-    toast.info(`${label} are coming in a later step`)
-  }
+  useDocumentTitle(post ? post.title : isNotFound ? "Post not found" : "Post")
 
   if (isLoading) return <PostDetailSkeleton />
 
@@ -69,7 +55,11 @@ const PostDetailPage = () => {
           <Button variant="outline" onClick={() => refetch()}>
             Retry
           </Button>
-          <Button variant="ghost" render={<Link to="/explore" />} nativeButton={false}>
+          <Button
+            variant="ghost"
+            render={<Link to="/explore" />}
+            nativeButton={false}
+          >
             Back to explore
           </Button>
         </div>
@@ -159,30 +149,8 @@ const PostDetailPage = () => {
         </ul>
       )}
 
-      <div className="mt-8 flex flex-wrap items-center gap-2">
-        <Button variant="outline" size="sm" onClick={() => handlePending("Likes")}>
-          <Heart />
-          {post.likesCount}
-          <span className="sr-only">likes</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handlePending("Comments")}
-        >
-          <MessageSquare />
-          {post.commentsCount}
-          <span className="text-muted-foreground">Comments</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn("ml-auto")}
-          onClick={() => handlePending("Bookmarks")}
-        >
-          <Bookmark />
-          Save
-        </Button>
+      <div className="mt-8">
+        <PostActions post={post} full />
       </div>
 
       <Separator className="my-8" />
@@ -196,10 +164,7 @@ const PostDetailPage = () => {
         </Avatar>
         <div>
           {author ? (
-            <Link
-              to={`/u/${author._id}`}
-              className="font-medium hover:underline"
-            >
+            <Link to={`/u/${author._id}`} className="font-medium hover:underline">
               {authorName}
             </Link>
           ) : (
@@ -210,6 +175,10 @@ const PostDetailPage = () => {
           </p>
         </div>
       </section>
+
+      <Separator className="my-8" />
+
+      <CommentsSection postId={post._id} commentsCount={post.commentsCount} />
     </article>
   )
 }

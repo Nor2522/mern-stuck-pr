@@ -2,6 +2,8 @@ import type { Request, Response } from "express";
 import mongoose, { type QueryFilter } from "mongoose";
 import Post, { type PostType } from "../models/post.model";
 import Category from "../models/category.model";
+import Like from "../models/like.model";
+import Bookmark from "../models/bookmark.model";
 import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
 import {
@@ -17,6 +19,42 @@ const populate = [
 
 const DEFAULT_LIMIT = 9;
 const MAX_LIMIT = 50;
+
+// Ku dar likedByMe/bookmarkedByMe marka isticmaale soo galay.
+// Wuxuu ku shaqeeyaa document-yo iyo objects labadaba.
+const withReactions = async (
+  posts: unknown[],
+  userId?: string | mongoose.Types.ObjectId,
+): Promise<Record<string, unknown>[]> => {
+  const plain = posts.map((post) =>
+    typeof (post as { toObject?: unknown }).toObject === "function"
+      ? (post as { toObject: () => Record<string, unknown> }).toObject()
+      : (post as Record<string, unknown>),
+  );
+
+  if (!userId || plain.length === 0) return plain;
+
+  const ids = plain.map(
+    (post) => post._id as string | mongoose.Types.ObjectId,
+  );
+  const [likes, bookmarks] = await Promise.all([
+    Like.find({ user: userId, post: { $in: ids } })
+      .select("post")
+      .lean(),
+    Bookmark.find({ user: userId, post: { $in: ids } })
+      .select("post")
+      .lean(),
+  ]);
+
+  const liked = new Set(likes.map((item) => String(item.post)));
+  const saved = new Set(bookmarks.map((item) => String(item.post)));
+
+  return plain.map((post) => ({
+    ...post,
+    likedByMe: liked.has(String(post._id)),
+    bookmarkedByMe: saved.has(String(post._id)),
+  }));
+};
 
 const parsePagination = (query: Request["query"]) => {
   const parsedPage = Number.parseInt(String(query.page ?? "1"), 10);
@@ -91,7 +129,9 @@ export const getPosts = async (req: Request, res: Response) => {
     Post.countDocuments(filter),
   ]);
 
-  res.status(200).json(paginated(posts, page, limit, total));
+  res
+    .status(200)
+    .json(paginated(await withReactions(posts, req.user?._id), page, limit, total));
 };
 
 // Hal post oo furan (public): kaliya published
@@ -106,7 +146,8 @@ export const getPostById = async (req: Request, res: Response) => {
   );
   if (!post) throw new HttpError(404, "Post lama helin");
 
-  res.status(200).json({ success: true, data: { post } });
+  const [withFlags] = await withReactions([post], req.user?._id);
+  res.status(200).json({ success: true, data: { post: withFlags } });
 };
 
 // Posts-ka isticmaalaha hadda (waxay ku jiraan hidden, waa authorized)

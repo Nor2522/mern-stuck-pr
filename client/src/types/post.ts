@@ -25,6 +25,8 @@ export interface PostType {
   status: PostStatus
   likesCount: number
   commentsCount: number
+  likedByMe?: boolean
+  bookmarkedByMe?: boolean
   createdAt: string
   updatedAt: string
 }

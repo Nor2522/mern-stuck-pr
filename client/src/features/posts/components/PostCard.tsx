@@ -1,10 +1,11 @@
 import { Link } from "react-router"
 import { formatDistanceToNow } from "date-fns"
-import { Code2, Heart, MessageSquare } from "lucide-react"
+import { Code2 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import { PostActions } from "./PostActions"
 import { getOptimizedImageUrl } from "@/lib/image"
 import type { PostType } from "@/types/post"
 
@@ -26,7 +27,7 @@ export const PostCard = ({ post }: { post: PostType }) => {
     <Card className="group h-full overflow-hidden transition-colors hover:border-primary/40">
       <Link
         to={`/posts/${post._id}`}
-        className="flex h-full flex-col"
+        className="flex flex-col gap-(--card-spacing)"
         aria-label={post.title}
       >
         {post.image?.url ? (
@@ -36,14 +37,14 @@ export const PostCard = ({ post }: { post: PostType }) => {
             loading="lazy"
             width={800}
             height={450}
-            className="aspect-video w-full object-cover"
+            className="aspect-video w-full rounded-t-xl object-cover"
           />
         ) : (
-          <div className="flex aspect-video w-full items-center justify-center bg-muted">
+          <div className="flex aspect-video w-full items-center justify-center rounded-t-xl bg-muted">
             <Code2 className="size-8 text-muted-foreground" />
           </div>
         )}
-        <CardContent className="flex flex-1 flex-col gap-2 pt-4">
+        <CardContent className="flex flex-col gap-2">
           {post.category ? (
             <Badge variant="secondary" className="w-fit capitalize">
               {post.category.name}
@@ -57,28 +58,24 @@ export const PostCard = ({ post }: { post: PostType }) => {
           <p className="line-clamp-3 text-sm text-muted-foreground">
             {post.description}
           </p>
-          <div className="mt-auto flex items-center gap-2 pt-3 text-xs text-muted-foreground">
-            <Avatar size="sm">
-              {author?.avatar?.url && (
-                <AvatarImage src={author.avatar.url} alt={authorName} />
-              )}
-              <AvatarFallback>{initials(authorName)}</AvatarFallback>
-            </Avatar>
-            <span className="truncate font-medium text-foreground">
-              {authorName}
-            </span>
-            {dateLabel && <time className="whitespace-nowrap">{dateLabel}</time>}
-            <span className="ml-auto flex items-center gap-1">
-              <Heart className="size-3.5" />
-              {post.likesCount}
-            </span>
-            <span className="flex items-center gap-1">
-              <MessageSquare className="size-3.5" />
-              {post.commentsCount}
-            </span>
-          </div>
         </CardContent>
       </Link>
+
+      <div className="flex items-center gap-2 px-(--card-spacing) text-xs text-muted-foreground">
+        <Avatar size="sm">
+          {author?.avatar?.url && (
+            <AvatarImage src={author.avatar.url} alt={authorName} />
+          )}
+          <AvatarFallback>{initials(authorName)}</AvatarFallback>
+        </Avatar>
+        <span className="truncate font-medium text-foreground">
+          {authorName}
+        </span>
+        {dateLabel && <time className="whitespace-nowrap">{dateLabel}</time>}
+        <div className="ml-auto">
+          <PostActions post={post} />
+        </div>
+      </div>
     </Card>
   )
 }
