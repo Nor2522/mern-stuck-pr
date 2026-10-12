@@ -3,9 +3,11 @@ import {
   useMutation,
   useQuery,
   useQueryClient,
+  type QueryClient,
 } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/error"
 import type { ApiSuccess } from "@/types/api"
 import type { PostType, PostsResponse } from "@/types/post"
 
@@ -27,6 +29,12 @@ export const postsKeys = {
 export const bookmarksKeys = {
   all: ["bookmarks"] as const,
   list: (page: number) => ["bookmarks", "list", page] as const,
+}
+
+export const myPostsKeys = {
+  all: ["my-posts"] as const,
+  list: (page: number) => ["my-posts", "list", page] as const,
+  stats: ["my-posts", "stats"] as const,
 }
 
 export const fetchPosts = async (
@@ -158,5 +166,95 @@ export const useToggleBookmark = (postId: string) => {
       queryClient.invalidateQueries({ queryKey: postsKeys.all })
       queryClient.invalidateQueries({ queryKey: bookmarksKeys.all })
     },
+  })
+}
+
+export interface MyPostsStats {
+  totalPosts: number
+  totalLikes: number
+  totalComments: number
+}
+
+const fetchMyPosts = async (page: number): Promise<PostsResponse> => {
+  const { data } = await api.get<ApiSuccess<PostsResponse>>("/post/user", {
+    params: { page, limit: 12 },
+  })
+  return data.data
+}
+
+export const useMyPosts = (page = 1) =>
+  useQuery({
+    queryKey: myPostsKeys.list(page),
+    queryFn: () => fetchMyPosts(page),
+    placeholderData: keepPreviousData,
+  })
+
+export const useMyStats = () =>
+  useQuery({
+    queryKey: myPostsKeys.stats,
+    queryFn: async (): Promise<MyPostsStats> => {
+      const { data } =
+        await api.get<ApiSuccess<MyPostsStats>>("/post/user/stats")
+      return data.data
+    },
+  })
+
+const invalidatePostCollections = (queryClient: QueryClient) => {
+  queryClient.invalidateQueries({ queryKey: postsKeys.all })
+  queryClient.invalidateQueries({ queryKey: myPostsKeys.all })
+}
+
+export const useCreatePost = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await api.post<ApiSuccess<{ post: PostType }>>(
+        "/post",
+        formData,
+      )
+      return data.data.post
+    },
+    onSuccess: () => {
+      invalidatePostCollections(queryClient)
+      toast.success("Post-ka waa la abuuray")
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useUpdatePost = (postId: string) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await api.put<ApiSuccess<{ post: PostType }>>(
+        `/post/${postId}`,
+        formData,
+      )
+      return data.data.post
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: postsKeys.detail(postId) })
+      invalidatePostCollections(queryClient)
+      toast.success("Post-ka waa la cusboonaysiiyay")
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useDeletePost = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (postId: string) => {
+      await api.delete(`/post/${postId}`)
+      return postId
+    },
+    onSuccess: () => {
+      invalidatePostCollections(queryClient)
+      toast.success("Post-ka waa la tirtiray")
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
   })
 }

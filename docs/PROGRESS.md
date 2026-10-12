@@ -40,7 +40,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T1.4 | Explore and post detail | DONE | _(see git log)_ | `/explore`: debounced search, category chips, latest/popular sort, pagination — all state in the URL. `/posts/:id`: full post, author card, tags, 404 state. Per-page `<title>`. New `Pagination` UI + `usePosts`/`usePost` hooks |
 | T2.0 | Reactions + share (pulled forward from T2.3–T2.5) | DONE | _(see git log)_ | Real **likes**, **comments**, **bookmarks** on every post + a **share** menu on each card & detail. New `Like`/`Comment`/`Bookmark` models, `like`/`comment`/`bookmark` controllers + routes, `optionalAuth`; `#comments` section, `/saved` list |
 | T2.1 | Auth pages | DONE | _(see git log)_ | `/login` + `/register` rebuilt with `Card` + `Field` + react-hook-form + zod (name 2–50, valid email, password ≥8 + letter + number, confirm); show/hide password; server field errors mapped; post-login redirect to `state.from`; backend zod-validated bodies (NoSQL-injection safe) |
-| T2.2 | Create, edit, delete posts | TODO | — | — |
+| T2.2 | Create, edit, delete posts | DONE | _(see git log)_ | `/dashboard`: my-posts grid (status badge, edit/delete), stats row (my posts / total likes / total comments), "New post"; shared `PostForm` (title, description, category, tags ≤5, optional image + preview/remove); delete via `AlertDialog`; react-query mutations invalidate + toast |
 | T2.3 | Likes | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.4 | Comments | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.5 | Bookmarks (Saved) | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
@@ -152,6 +152,38 @@ Pre-existing lint findings (baseline, target for T0.2):
   401/400/201/list/delete (+403 cross-user), bookmarks 401/toggle/list. Test
   residue (comment/like/bookmark) removed — post counts back to `0/0`,
   bookmarks `0`.
+- **T2.2 — dashboard rebuilt on react-query.** `DashBoard.tsx` now owns the
+  "my posts" loop: a stats row (`GET /post/user/stats`), a paginated grid of
+  `MyPostCard`s (status + category badges, likes/comments, date), a "New post"
+  dialog, and empty/loading/error states. New shared
+  `features/posts/components/PostForm.tsx` serves both create and edit (title,
+  description `Textarea`, category `<select>` from `/categories`, comma-separated
+  tags ≤ 5, optional image with preview + remove); `client/src/features/posts/schemas.ts`
+  (zod) + `toPostFormData` build the multipart body. `MyPostCard` embeds the edit
+  `Dialog` (prefilled) and a delete `AlertDialog`. Mutations `useCreatePost`/
+  `useUpdatePost`/`useDeletePost` (with `useMyPosts`, `useMyStats`) invalidate
+  `postsKeys.all` + `myPostsKeys.all` and toast; `getErrorMessage` now surfaces
+  the server's `message` for axios errors.
+- **T2.2 — backend:** added `getUserStats` (mongoose aggregate over the current
+  user's posts → `totalPosts/totalLikes/totalComments`) at `GET /post/user/stats`.
+  The create/update/delete routes already existed and are unchanged: ownership
+  enforced (403), image replace destroys the old Cloudinary asset, delete removes
+  the asset too. Text-only posts are allowed (image optional).
+- **T2.2 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. curl: stats `0/0/0` → text-only create
+  (`-F title -F description -F tags`) → 201 → stats `1/0/0`. Live CDP (cookie
+  injected): `/dashboard` rendered my-posts + stats; opening "New post" showed
+  all form fields; creating through the dialog added the card and bumped stats
+  `1→2`; editing a card opened prefilled, saved and reflected the new title;
+  the delete `AlertDialog` confirmed and removed the card. Temp post(s) deleted
+  after (user back to `0/0/0`).
+- **T2.2 — new temp user:** `t22test<ts>@example.com` / `Passw0rd1` created for
+  the flow (DB deletes need your approval). The legacy
+  `client/src/components/dashboard/{DailogForm,Posts,Post}.tsx` are no longer
+  imported; deleting them needs your approval.
+- **T2.2 — note:** `Posts.tsx` (legacy) had been fetching the public feed
+  (`GET /post`) instead of the user's own posts; the rewrite uses
+  `GET /post/user` so the dashboard is correctly scoped.
 - **T2.1 — auth pages rebuilt.** `LoginPage`/`RegisterPage` now own their forms
   (the old `client/src/components/Login.tsx` + `Register.tsx` are no longer
   imported; deleting them needs your approval). Uses `Card` + the base-nova

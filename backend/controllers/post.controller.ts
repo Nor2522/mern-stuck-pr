@@ -172,6 +172,39 @@ export const getUserPosts = async (req: Request, res: Response) => {
   res.status(200).json(paginated(posts, page, limit, total));
 };
 
+// Tirakoobka posts-ka isticmaalaha hadda (dashboard stats row)
+export const getUserStats = async (req: Request, res: Response) => {
+  const currentUser = req.user;
+  if (!currentUser) {
+    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+  }
+
+  const [result] = await Post.aggregate<{
+    totalPosts: number;
+    totalLikes: number;
+    totalComments: number;
+  }>([
+    { $match: { author: currentUser._id } },
+    {
+      $group: {
+        _id: null,
+        totalPosts: { $sum: 1 },
+        totalLikes: { $sum: "$likesCount" },
+        totalComments: { $sum: "$commentsCount" },
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      totalPosts: result?.totalPosts ?? 0,
+      totalLikes: result?.totalLikes ?? 0,
+      totalComments: result?.totalComments ?? 0,
+    },
+  });
+};
+
 // Abuur post (image waa ikhtiyaari)
 export const createPost = async (req: Request, res: Response) => {
   const currentUser = req.user;

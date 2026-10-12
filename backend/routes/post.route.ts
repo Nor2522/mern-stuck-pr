@@ -5,6 +5,7 @@ import {
   getPostById,
   getPosts,
   getUserPosts,
+  getUserStats,
   updatePost,
 } from "../controllers/post.controller";
 import { toggleLike } from "../controllers/like.controller";
@@ -24,6 +25,7 @@ const postRouter = Router();
 postRouter.get("/", optionalAuth, asyncHandler(getPosts));
 // Authorized: posts-ka isticmaalaha hadda (waa inuu ka horreeyaa "/:id")
 postRouter.get("/user", authorize, asyncHandler(getUserPosts));
+postRouter.get("/user/stats", authorize, asyncHandler(getUserStats));
 postRouter.get("/:id", optionalAuth, asyncHandler(getPostById));
 
 // Like / bookmark / comments-ka post-ka
