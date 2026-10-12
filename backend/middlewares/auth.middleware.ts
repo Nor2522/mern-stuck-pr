@@ -28,6 +28,12 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
         message: "Unauthorized, user-kan ma jiro",
       });
 
+    if (user.isBanned) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Account suspended" });
+    }
+
     req.user = user;
     next();
   } catch (error) {

@@ -23,6 +23,24 @@ const Userschema = new Schema(
       required: true,
       trim: true,
       minLength: 5,
+      select: false,
+    },
+    role: {
+      type: String,
+      enum: ["user", "admin"],
+      default: "user",
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    avatar: {
+      url: { type: String },
+      publicId: { type: String },
+    },
+    bio: {
+      type: String,
+      maxLength: 160,
     },
   },
   { timestamps: true },

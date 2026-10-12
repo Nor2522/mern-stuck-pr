@@ -33,7 +33,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T0.1 | Baseline and progress log | DONE | _(see checkout)_ | Created `docs/BUILD_PLAN.md`, `docs/PROGRESS.md`, `backend/.env.example`, `client/.env.example` |
 | T0.2 | Cleanup and consistency | DONE | _(see git log)_ | sonner-only toasts, typed `AuthUser`, lint 0/0, `api.ts` reads `VITE_API_URL`, removed `react-hot-toast` |
 | T0.3 | Backend foundation | DONE | _(see git log)_ | env validation (zod), helmet, rate limit, global error + 404, `/api/health`, `GET /api/user/me`, cookie hardened, token removed from body |
-| T0.4 | Roles, banned users, admin seed | TODO | — | — |
+| T0.4 | Roles, banned users, admin seed | DONE | _(see git log)_ | `role`/`isBanned`/`avatar`/`bio`, `password select:false`, `requireRole`, banned→403, `seed:admin` + `report:orphans` scripts |
 | T1.1 | Post model upgrade and public API | TODO | — | — |
 | T1.2 | Frontend foundation (layout, routing, data layer) | TODO | — | — |
 | T1.3 | Home page | TODO | — | — |
@@ -66,8 +66,15 @@ Pre-existing lint findings (baseline, target for T0.2):
   `Express.Request` with `user?: HydratedDocument<UserType>` (planned for T0.4),
   so the new `/me` controller avoids `(req as any)`. T0.4 still adds
   `requireRole`, `isBanned` and the rest.
-- **Test data:** T0.3 API verification created one throwaway user in the dev DB
-  (`t03test<timestamp>@example.com`). Not deleted (DB deletes need approval).
+- **Existing users without `role`:** `role`/`isBanned` are only defaults for new
+  docs, so old docs read back `undefined`. They behave as a normal user: the
+  banned check is falsy-safe and `requireRole("admin")` requires an exact
+  `"admin"` match. No migration was run.
+- **Orphan posts:** `bun run report:orphans` reported **0** posts without an
+  author (dev DB). No action needed; script only lists.
+- **Test data (not deleted — DB deletes need approval):**
+  - `t03test<timestamp>@example.com` (T0.3)
+  - `admin.t04@example.com` (admin, via `seed:admin` with test creds), `user.t04@example.com` (user), `banned.t04@example.com` (banned) (T0.4)
 - **Resolved in T0.2:** `client/src/lib/api.ts` now reads
   `import.meta.env.VITE_API_URL` (falls back to `http://localhost:5000/api`).
   Note this bypasses the Vite `/api` proxy for calls made through `api`;
