@@ -1,6 +1,6 @@
 import type { Request, Response } from "express"
 import Post from "../models/post.model"
-import { uploadToCloudinary } from "../config/cloudinary"
+import cloudinary, { uploadToCloudinary } from "../config/cloudinary"
 
 
 //  author populate  
@@ -87,8 +87,39 @@ export const updatePost = async (req: Request, res: Response) => {
     post.title = title
     post.description = description
     await post.save()
+    await post.populate(authorPapulate)
 
     res.status(200).json({ success: true, data: { post } })
+  } catch (error) {
+    res.status(400).json({ success: false, message: (error as Error).message })
+  }
+}
+
+// delete post
+export const deletePost = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params
+    const currentUser = (req as any).user
+
+    const post = await Post.findById(id)
+
+    if (!post) {
+      return res.status(404).json({ success: false, message: "Post lama helin" })
+    }
+
+    if (post.author.toString() !== currentUser._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Ma lihid fasax aad ku tirtirto post-kan" })
+    }
+
+    if (post.image?.publicId) {
+      await cloudinary.uploader.destroy(post.image.publicId)
+    }
+
+    await post.deleteOne()
+
+    res.status(200).json({ success: true, message: "Post deleted" })
   } catch (error) {
     res.status(400).json({ success: false, message: (error as Error).message })
   }
