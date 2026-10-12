@@ -6,6 +6,6 @@ const postRouter = Router();
 postRouter.get("/", authorize, getPost);
 postRouter.get("/user",authorize, getUserPosts)
 postRouter.post("/",authorize,upload.single("image"), createPost);
-postRouter.put("/:id",authorize, updatePost)
+postRouter.put("/:id",authorize,upload.single("image"), updatePost)
 postRouter.delete("/:id",authorize, deletePost)
 export default postRouter;

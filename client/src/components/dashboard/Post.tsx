@@ -58,6 +58,8 @@ const EditPostDialog = ({
 }) => {
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [image, setImage] = useState<File | null>(null)
+  const [preview, setPreview] = useState("")
   const {
     register,
     handleSubmit,
@@ -67,10 +69,21 @@ const EditPostDialog = ({
     defaultValues: { title: post.title, description: post.description },
   })
 
+  const handleImage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+    setImage(file)
+    setPreview(URL.createObjectURL(file))
+  }
+
   const onSubmit = async (values: EditForm) => {
     try {
       setSubmitting(true)
-      await api.put(`/post/${post._id}`, values)
+      const formData = new FormData()
+      formData.append("title", values.title)
+      formData.append("description", values.description)
+      if (image) formData.append("image", image)
+      await api.put(`/post/${post._id}`, formData)
       toast.success("Post-ka waa la cusboonaysiiyay")
       setOpen(false)
       onChanged?.()
@@ -86,7 +99,11 @@ const EditPostDialog = ({
       open={open}
       onOpenChange={(next) => {
         setOpen(next)
-        if (next) reset({ title: post.title, description: post.description })
+        if (next) {
+          reset({ title: post.title, description: post.description })
+          setImage(null)
+          setPreview("")
+        }
       }}
     >
       <DialogTrigger
@@ -100,7 +117,7 @@ const EditPostDialog = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <DialogHeader>
             <DialogTitle>Edit post</DialogTitle>
-            <DialogDescription>Beddel title iyo description.</DialogDescription>
+            <DialogDescription>Beddel title, description iyo sawir.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
             <Label htmlFor={`title-${post._id}`}>Title</Label>
@@ -125,6 +142,20 @@ const EditPostDialog = ({
                 {errors.description.message}
               </p>
             )}
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`image-${post._id}`}>Image</Label>
+            <Input
+              id={`image-${post._id}`}
+              type="file"
+              accept="image/*"
+              onChange={handleImage}
+            />
+            <img
+              src={preview || post.image?.url}
+              alt={post.title}
+              className="aspect-video w-full rounded-md object-cover"
+            />
           </div>
           <DialogFooter>
             <Button type="submit" disabled={submitting}>

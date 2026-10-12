@@ -71,6 +71,7 @@ export const updatePost = async (req: Request, res: Response) => {
     const { id } = req.params
     const { title, description } = req.body
     const currentUser = (req as any).user
+    const file = req.file // multer memoryStorage: file.buffer (optional)
 
     const post = await Post.findById(id)
 
@@ -84,8 +85,20 @@ export const updatePost = async (req: Request, res: Response) => {
         .json({ success: false, message: "Ma lihid fasax aad ku beddesho post-kan" })
     }
 
-    post.title = title
-    post.description = description
+    // Haddii sawir cusub la soo diray, kii hore Cloudinary ka tirtir kadibna keydi kan cusub
+    if (file) {
+      const result = await uploadToCloudinary(file.buffer)
+      if (post.image?.publicId) {
+        await cloudinary.uploader.destroy(post.image.publicId)
+      }
+      post.image = {
+        url: result.secure_url,
+        publicId: result.public_id,
+      }
+    }
+
+    if (title !== undefined) post.title = title
+    if (description !== undefined) post.description = description
     await post.save()
     await post.populate(authorPapulate)
 
