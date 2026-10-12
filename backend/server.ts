@@ -6,6 +6,7 @@ import { CLIENT_URL, PORT } from "./config/env.ts"
 import authrouter from "./routes/auth.route.ts"
 import connectDB from "./database/mongodb.ts"
 import postRouter from "./routes/post.route.ts"
+import categoryRouter from "./routes/category.route.ts"
 import { errorHandler, notFound } from "./middlewares/error.middleware.ts"
 
 const app = express()
@@ -32,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 // Routes
 app.use("/api/user", authrouter)
 app.use("/api/post", postRouter)
+app.use("/api/categories", categoryRouter)
 
 // 404 + global error handler (waa inay ugu dambeeyaan)
 app.use(notFound)

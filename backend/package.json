@@ -7,7 +7,9 @@
     "dev": "tsx watch server.ts",
     "prod": "bun --env-file=local.production.env run backend/config/env.ts && bun run backend/server.ts",
     "seed:admin": "bun run scripts/seed-admin.ts",
-    "report:orphans": "bun run scripts/report-orphan-posts.ts"
+    "seed:categories": "bun run scripts/seed-categories.ts",
+    "report:orphans": "bun run scripts/report-orphan-posts.ts",
+    "backfill:post-status": "bun run scripts/backfill-post-status.ts"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",

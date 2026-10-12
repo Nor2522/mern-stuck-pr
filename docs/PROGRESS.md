@@ -34,7 +34,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T0.2 | Cleanup and consistency | DONE | _(see git log)_ | sonner-only toasts, typed `AuthUser`, lint 0/0, `api.ts` reads `VITE_API_URL`, removed `react-hot-toast` |
 | T0.3 | Backend foundation | DONE | _(see git log)_ | env validation (zod), helmet, rate limit, global error + 404, `/api/health`, `GET /api/user/me`, cookie hardened, token removed from body |
 | T0.4 | Roles, banned users, admin seed | DONE | _(see git log)_ | `role`/`isBanned`/`avatar`/`bio`, `password select:false`, `requireRole`, banned→403, `seed:admin` + `report:orphans` scripts |
-| T1.1 | Post model upgrade and public API | TODO | — | — |
+| T1.1 | Post model upgrade and public API | DONE | _(see git log)_ | `Category` + public `/api/categories`; `Post` upgraded (category/tags/status/counts/optional image/indexes); public `GET /post` list (pagination/search/filter/sort) + `GET /post/:id`; zod validators; seed + backfill scripts run |
 | T1.2 | Frontend foundation (layout, routing, data layer) | TODO | — | — |
 | T1.3 | Home page | TODO | — | — |
 | T1.4 | Explore and post detail | TODO | — | — |
@@ -56,6 +56,25 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T4.4 | Docs and release prep | TODO | — | — |
 
 ## Open issues / assumptions
+
+- **T1.1 — API response shape changed (breaking for old client code):** the list
+  now returns `data: { posts, pagination }` instead of `data: { post }`.
+  `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and
+  will be rewritten in T1.2/T2.2. `cd client && bun run build` still PASSes
+  because axios responses are untyped (`any`); this is a runtime-only mismatch.
+- **T1.1 — Mongoose 9 exports `QueryFilter`, not `FilterQuery`.** Used
+  `QueryFilter<PostType>` in `post.controller.ts` (the baseline `tsc` would fail
+  with the old name).
+- **T1.1 — ran with your approval:** `seed:categories` (8 categories, upsert) and
+  `backfill:post-status` (6 posts without `status` -> `published`). Non-destructive.
+- **T1.1 — category filter positive path unproven:** no existing post has a
+  `category` yet, so `GET /api/post?category=<slug>` returns an empty list by
+  design. It is wired (slug -> id resolution) and will be exercised in T2.2.
+- **T1.1 — input conventions:** `tags` accepts a JSON array string, a
+  comma-separated string, or an array; normalized to lowercase (max 5).
+  `category` accepts an ObjectId or a slug. `image` is now optional (text-only
+  posts allowed). `POST/PUT` do not accept `status` yet (default `published`);
+  admin hide/unhide comes in T3.3.
 
 - **Resolved in T0.3 (env names):** `backend/config/env.ts` now reads
   `MONGODB_URI` and `JWT_EXPIRES_IN` (as documented in `.env.example`) and falls
