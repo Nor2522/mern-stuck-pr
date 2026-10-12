@@ -36,7 +36,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T0.4 | Roles, banned users, admin seed | DONE | _(see git log)_ | `role`/`isBanned`/`avatar`/`bio`, `password select:false`, `requireRole`, banned→403, `seed:admin` + `report:orphans` scripts |
 | T1.1 | Post model upgrade and public API | DONE | _(see git log)_ | `Category` + public `/api/categories`; `Post` upgraded (category/tags/status/counts/optional image/indexes); public `GET /post` list (pagination/search/filter/sort) + `GET /post/:id`; zod validators; seed + backfill scripts run |
 | T1.2 | Frontend foundation (layout, routing, data layer) | DONE | _(see git log)_ | `@tanstack/react-query` + `zod` + `@hookform/resolvers` + `date-fns`; cookie-based `AuthProvider`/`useAuth` (session from `/user/me`), 401 interceptor; `Navbar`/`Footer` + mobile Sheet + light/dark toggle; route map + guards + 404; API types; backend `/me` + login now return `role`/`avatar`/`bio` |
-| T1.3 | Home page | TODO | — | — |
+| T1.3 | Home page | DONE | _(see git log)_ | Hero (role-aware CTA), Latest posts (6 `PostCard`s, skeleton/empty/error), category chips, How it works, final CTA; react-query hooks + Cloudinary optimized URLs + date-fns |
 | T1.4 | Explore and post detail | TODO | — | — |
 | T2.1 | Auth pages | TODO | — | — |
 | T2.2 | Create, edit, delete posts | TODO | — | — |
@@ -85,9 +85,24 @@ Pre-existing lint findings (baseline, target for T0.2):
 - **T1.2 — 401 interceptor:** clears the Query cache, toasts and redirects to
   `/login` for any non-`/user/me` 401. The `/user/me` session probe is excluded
   (its 401 is the normal logged-out state and is swallowed to `null`).
-- **T1.2 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
-  backend `bunx tsc --noEmit` PASS; live curl: health 200, `/user/me` without
-  cookie 401, login+`/me` include `role`.
+- **T1.3 — new shared `PostCard`** lives at
+  `client/src/features/posts/components/PostCard.tsx` (image or neutral `Code2`
+  block, category badge, title/description line-clamped, author avatar + name,
+  relative date via `date-fns`, likes/comments counts). `PostCardSkeleton` ships
+  in the same file so cards reserve identical space (no layout shift).
+- **T1.3 — Cloudinary URLs are optimized** on the client via
+  `client/src/lib/image.ts` (`/image/upload/` -> adds `f_auto,q_auto,w_800`).
+- **T1.3 — Base UI fix:** `Button` renders with `nativeButton={false}` whenever
+  the `render` prop is a `Link`. Without it Base UI logged an accessibility
+  warning per link-button. Verified live: zero warnings in console.
+- **T1.3 — home is responsive-checked** at 375/768/1280 (sections present,
+  mobile `Sheet` trigger on 375, no console errors; verified headless).
+- **T1.3 — category chips link to `/explore?category=<slug>`** (Explore is still
+  a stub until T1.4, so the query is currently ignored there).
+- **T1.3 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS; live headless chrome: all sections render,
+  6 post cards + 8 category chips at 375/768/1280, **zero console warnings**
+  (the Base UI `nativeButton` warnings from the first pass are gone).
 
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.

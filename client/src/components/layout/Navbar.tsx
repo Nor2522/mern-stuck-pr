@@ -72,6 +72,7 @@ export const Navbar = () => {
               key={link.to}
               variant="ghost"
               size="sm"
+              nativeButton={false}
               render={<Link to={link.to} />}
             >
               {link.label}
@@ -151,6 +152,7 @@ export const Navbar = () => {
                           <Button
                             variant="ghost"
                             className="justify-start"
+                            nativeButton={false}
                             render={<Link to={link.to} />}
                           />
                         }
@@ -200,6 +202,7 @@ export const Navbar = () => {
                           <Button
                             variant="ghost"
                             className="justify-start"
+                            nativeButton={false}
                             render={<Link to={link.to} />}
                           />
                         }
@@ -213,11 +216,16 @@ export const Navbar = () => {
               <Button
                 variant="ghost"
                 size="sm"
+                nativeButton={false}
                 render={<Link to="/login" />}
               >
                 Login
               </Button>
-              <Button size="sm" render={<Link to="/register" />}>
+              <Button
+                size="sm"
+                nativeButton={false}
+                render={<Link to="/register" />}
+              >
                 Register
               </Button>
             </>
