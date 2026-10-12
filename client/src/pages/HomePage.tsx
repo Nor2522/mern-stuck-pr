@@ -3,6 +3,7 @@ import { PenLine, Sparkles, TrendingUp } from "lucide-react"
 import { useAuth } from "@/features/auth/auth-context"
 import { useCategories } from "@/features/categories/api"
 import { useLatestPosts } from "@/features/posts/api"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import {
   PostCard,
   PostCardSkeleton,
@@ -30,6 +31,7 @@ const steps = [
 ]
 
 const HomePage = () => {
+  useDocumentTitle()
   const { user } = useAuth()
   const latest = useLatestPosts(6)
   const categories = useCategories()

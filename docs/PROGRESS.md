@@ -37,7 +37,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T1.1 | Post model upgrade and public API | DONE | _(see git log)_ | `Category` + public `/api/categories`; `Post` upgraded (category/tags/status/counts/optional image/indexes); public `GET /post` list (pagination/search/filter/sort) + `GET /post/:id`; zod validators; seed + backfill scripts run |
 | T1.2 | Frontend foundation (layout, routing, data layer) | DONE | _(see git log)_ | `@tanstack/react-query` + `zod` + `@hookform/resolvers` + `date-fns`; cookie-based `AuthProvider`/`useAuth` (session from `/user/me`), 401 interceptor; `Navbar`/`Footer` + mobile Sheet + light/dark toggle; route map + guards + 404; API types; backend `/me` + login now return `role`/`avatar`/`bio` |
 | T1.3 | Home page | DONE | _(see git log)_ | Hero (role-aware CTA), Latest posts (6 `PostCard`s, skeleton/empty/error), category chips, How it works, final CTA; react-query hooks + Cloudinary optimized URLs + date-fns |
-| T1.4 | Explore and post detail | TODO | — | — |
+| T1.4 | Explore and post detail | DONE | _(see git log)_ | `/explore`: debounced search, category chips, latest/popular sort, pagination — all state in the URL. `/posts/:id`: full post, author card, tags, 404 state, login-prompting like/comment/bookmark placeholders. Per-page `<title>`. New `Pagination` UI + `usePosts`/`usePost` hooks |
 | T2.1 | Auth pages | TODO | — | — |
 | T2.2 | Create, edit, delete posts | TODO | — | — |
 | T2.3 | Likes | TODO | — | — |
@@ -97,12 +97,32 @@ Pre-existing lint findings (baseline, target for T0.2):
   warning per link-button. Verified live: zero warnings in console.
 - **T1.3 — home is responsive-checked** at 375/768/1280 (sections present,
   mobile `Sheet` trigger on 375, no console errors; verified headless).
-- **T1.3 — category chips link to `/explore?category=<slug>`** (Explore is still
-  a stub until T1.4, so the query is currently ignored there).
+- **T1.3 — category chips link to `/explore?category=<slug>`** (honored by
+  Explore since T1.4).
 - **T1.3 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
   backend `bunx tsc --noEmit` PASS; live headless chrome: all sections render,
   6 post cards + 8 category chips at 375/768/1280, **zero console warnings**
   (the Base UI `nativeButton` warnings from the first pass are gone).
+- **T1.4 — `/explore` state lives in the URL** (`?q=&category=&sort=&page=`), so
+  refresh / back / direct links all restore it. Search is debounced (400ms) and
+  synced to the URL; the URL→input sync uses React's render-time state-adjust
+  pattern (the `react-hooks/set-state-in-effect` lint rule forbids the obvious
+  `useEffect`). `Pagination` preserves the other query params in its href.
+- **T1.4 — post detail** (`usePost`, `retry: false`) maps a 404 (axios status) to
+  the shared `NotFoundPage`; other errors show a Retry block. Like/Comment/
+  Bookmark are placeholders: logged-out click toasts + routes to `/login` with
+  `state.from`; logged-in click toasts "coming in a later step".
+- **T1.4 — per-page `<title>`** via `useDocumentTitle` (Home, Explore, post title,
+  404, NotFound). Brand suffix is `DevMotiv`.
+- **T1.4 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS; live headless chrome: `/explore` p1=9 cards
+  + pagination, `?page=2`=2 cards + active link, `?category=ai`=3 cards (no
+  pagination), `?q=temp`=6, invalid/unknown ids → 404 UI, valid id → full post,
+  no app-origin console errors.
+- **T1.4 — pagination was exercised with temporary data:** 6 posts (3 with
+  category `ai`) created as `t14temp<ts>@example.com` to push the list past one
+  page, then **deleted** (feed back to the original 5). The temp *user* remains
+  (like the earlier `t12test` user); deleting it needs your approval.
 
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
