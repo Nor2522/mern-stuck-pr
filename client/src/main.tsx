@@ -8,9 +8,8 @@ import App from "./App.tsx";
 import RegisterPage from "./pages/RegisterPage.tsx";
 import LoginPage from "./pages/LoginPage.tsx";
 import DashBoard from "./pages/DashBoard.tsx";
-import { Toaster } from "react-hot-toast";
 import { Toaster as SonnerToaster } from "sonner";
-import { UserProvider } from "./hooks/useUser.tsx";
+import { UserProvider } from "./hooks/UserProvider.tsx";
 
 const router = createBrowserRouter([
   {
@@ -36,7 +35,6 @@ const router = createBrowserRouter([
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <UserProvider>
-      <Toaster />
       <SonnerToaster />
       <RouterProvider router={router} />
     </UserProvider>

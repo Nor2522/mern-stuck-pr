@@ -231,7 +231,7 @@ const Post = ({
   onChanged?: () => void
 }) => {
   const { user } = useUser()
-  const currentUserId = user?._id ?? user?.id ?? user?.user?._id
+  const currentUserId = user?._id
   const isOwner = Boolean(currentUserId && post.author?._id === currentUserId)
   const createdAt = formatDate(post.createdAt)
   const authorName = post.author?.name ?? "Unknown"

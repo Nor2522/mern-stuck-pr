@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { useNavigate } from "react-router";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -35,9 +35,8 @@ const Register = () => {
     event.preventDefault();
     try {
       setIsLoading(true);
-      const { data } = await axios.post("/api/user/sign-up", formData);
-      console.log("success", data);
-      toast.success("Registration Successfuly! 🎉");
+      await axios.post("/api/user/sign-up", formData);
+      toast.success("Registration Successfuly!");
       setIsLoading(false);
       navigate("/login");
     } catch (error) {

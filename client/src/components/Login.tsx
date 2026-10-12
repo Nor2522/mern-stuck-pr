@@ -12,8 +12,9 @@ import { Button } from "@/components/ui/button"
 import React, { useEffect, useState } from "react";
 import axios, { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import useUser from "@/hooks/useUser";
+import type { LoginResponse } from "@/types/user";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -25,9 +26,9 @@ const Login = () => {
 
   const { login, user } = useUser();
  
-  useEffect(()=>{
-     if(user) navigate("/")
-  },[user])
+  useEffect(() => {
+    if (user) navigate("/");
+  }, [user, navigate]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,12 +41,13 @@ const Login = () => {
     event.preventDefault();
     try {
       setIsLoading(true);
-      const { data } = await axios.post("/api/user/login", formData);
-      console.log("success", data);
-      toast.success("Login Successfuly! 🎉");
+      const { data } = await axios.post<LoginResponse>(
+        "/api/user/login",
+        formData,
+      );
+      toast.success("Login Successfuly!");
       setIsLoading(false);
-      // navigate("/dashboard")
-      login(data.userData,data.expire)
+      login(data.userData.user, data.expire);
     } catch (error) {
       if (isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;

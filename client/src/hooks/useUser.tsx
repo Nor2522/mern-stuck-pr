@@ -1,54 +1,21 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useContext } from "react"
+import type { AuthUser } from "@/types/user"
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
+export interface UserContextValue {
+  user: AuthUser | null
+  setUser: (user: AuthUser | null) => void
+  login: (user: AuthUser, expireIn: number) => void
+  logOut: () => void
 }
-const UserContext = createContext<any | null>(null);
 
-export const UserProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const logOut = () => {
-    localStorage.removeItem("userData");
-    localStorage.removeItem("expiretionTime");
-    setUser(null);
-  };
-  useEffect(() => {
-    const storedUser = localStorage.getItem("userData");
-    const expiratinTime = localStorage.getItem("expiretionTime");
-
-    if (storedUser && expiratinTime) {
-      const currentTime = new Date().getTime();
-      if (parseInt(expiratinTime) > currentTime) {
-        setUser(JSON.parse(storedUser));
-      } else {
-        logOut();
-      }
-    }
-  }, []);
-  const login = (userData: User, expireIn: number) => {
-    const expiretionTime = new Date().getTime() + expireIn;
-
-    localStorage.setItem("expiretionTime", expiretionTime.toString());
-    localStorage.setItem("userData", JSON.stringify(userData));
-
-    setUser(userData);
-  };
-  return (
-    <UserContext.Provider value={{ user, setUser, login, logOut }}>
-      {children}
-    </UserContext.Provider>
-  );
-};
+export const UserContext = createContext<UserContextValue | null>(null)
 
 const useUser = () => {
-  return useContext(UserContext);
-};
-export default useUser;
+  const context = useContext(UserContext)
+  if (!context) {
+    throw new Error("useUser waa in laga isticmaalaa UserProvider dhexdiisa")
+  }
+  return context
+}
+
+export default useUser

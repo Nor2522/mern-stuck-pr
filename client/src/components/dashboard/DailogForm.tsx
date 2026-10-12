@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { useState } from "react"
 import axios from "axios"
 
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 const API_URL = "/api/post"
 
 function DialogForm({ onCreated }: { onCreated?: () => void }) {
