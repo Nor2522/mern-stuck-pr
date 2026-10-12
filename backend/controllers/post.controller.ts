@@ -8,7 +8,7 @@ const authorPapulate = { path:"author", select:"name email"}
 // get posts
 export const getPost = async (req: Request, res: Response) => {
   try {
-    const post = await Post.find()
+    const post = await Post.find().populate(authorPapulate)
     res.status(200).json({ success: true, data: { post } })
   } catch (error) {
     res.status(400).json({ success: false, message: (error as Error).message })
@@ -70,18 +70,25 @@ export const updatePost = async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const { title, description } = req.body
+    const currentUser = (req as any).user
 
-    const updatedPost = await Post.findByIdAndUpdate(
-      id, // 1aad: id-ga
-      { title, description }, // 2aad: waxa la beddelayo
-      { new: true, runValidators: true } // 3aad: options
-    )
+    const post = await Post.findById(id)
 
-    if (!updatedPost) {
+    if (!post) {
       return res.status(404).json({ success: false, message: "Post lama helin" })
     }
 
-    res.status(200).json({ success: true, data: { post: updatedPost } })
+    if (post.author.toString() !== currentUser._id.toString()) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Ma lihid fasax aad ku beddesho post-kan" })
+    }
+
+    post.title = title
+    post.description = description
+    await post.save()
+
+    res.status(200).json({ success: true, data: { post } })
   } catch (error) {
     res.status(400).json({ success: false, message: (error as Error).message })
   }

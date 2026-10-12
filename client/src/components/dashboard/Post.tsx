@@ -1,21 +1,32 @@
-import { ReactNode } from "react"
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-const Post = ({post}:{post:ReactNode}) => {
-  return (
- <Card>
-        <CardHeader>
-          <CardTitle>{post.title}</CardTitle>
-           <CardDescription>{post.content}</CardDescription>
-       </CardHeader>
-         <CardContent>
-           { <img src={post.image} alt={post.title}/>}
-        </CardContent>
- </Card> )}
+import type { PostType } from "@/types/post";
 
-export default Post
+const Post = ({ post }: { post: PostType }) => {
+  const createdAt = new Date(post.createdAt).toLocaleDateString();
+
+  return (
+    <Card>
+      {post.image?.url && (
+        <img
+          src={post.image.url}
+          alt={post.title}
+          className="aspect-video w-full rounded object-cover"
+        />
+      )}
+      <CardHeader>
+        <CardTitle>{post.title}</CardTitle>
+        <CardDescription>{post.description}</CardDescription>
+        <CardDescription>
+          {post.author?.name ?? "Unknown"} · {createdAt}
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  );
+};
+
+export default Post;

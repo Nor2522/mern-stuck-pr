@@ -18,7 +18,7 @@ import axios from "axios"
 import toast from "react-hot-toast";
 const API_URL = "/api/post"
 
-function DialogForm() {
+function DialogForm({ onCreated }: { onCreated?: () => void }) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -61,6 +61,7 @@ function DialogForm() {
       setLoading(true)
       await axios.post(API_URL, formData,{withCredentials:true})  
       toast.success("Post-ka waa la abuuray")
+      onCreated?.()
       resetForm()
       setOpen(false)
     } catch (err) {

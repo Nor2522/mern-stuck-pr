@@ -87,4 +87,16 @@ const signIn = async (req: Request, res: Response) => {
   }
 };
 
-export { register, signIn };
+const signOut = (req: Request, res: Response) => {
+  res.clearCookie("token", {
+    httpOnly: true, // Frontend JS ma akhrin karo (xakameynta XSS Attack)
+    secure: process.env.NODE_ENV === "production", // HTTPS oo kaliya marka lagu jiro production
+    sameSite: "strict", // Xakameynta CSRF Attack
+  });
+  return res.status(200).json({
+    success: true,
+    message: "User signed out successfully",
+  });
+};
+
+export { register, signIn, signOut };

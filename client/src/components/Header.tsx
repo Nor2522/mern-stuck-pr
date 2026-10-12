@@ -1,9 +1,24 @@
+import { toast } from "sonner";
+import { Link, useNavigate } from "react-router";
+import { api } from "@/lib/api";
 import useUser from "@/hooks/useUser";
-import { Link } from "react-router";
 import { Button } from "./ui/button";
 
 const Header = () => {
   const { user, logOut } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/user/sign-out");
+      logOut();
+      navigate("/login");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Logout wuu fashilmay",
+      );
+    }
+  };
 
   return (
     <header className="flex justify-between items-center py-4 px-8 bg-gray-800 text-white">
@@ -16,7 +31,7 @@ const Header = () => {
             <Button
               variant={"outline"}
               className={"bg-slate-900/50"}
-              onClick={() => logOut()}
+              onClick={handleLogout}
             >
               Logout
             </Button>
