@@ -35,7 +35,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T0.3 | Backend foundation | DONE | _(see git log)_ | env validation (zod), helmet, rate limit, global error + 404, `/api/health`, `GET /api/user/me`, cookie hardened, token removed from body |
 | T0.4 | Roles, banned users, admin seed | DONE | _(see git log)_ | `role`/`isBanned`/`avatar`/`bio`, `password select:false`, `requireRole`, banned→403, `seed:admin` + `report:orphans` scripts |
 | T1.1 | Post model upgrade and public API | DONE | _(see git log)_ | `Category` + public `/api/categories`; `Post` upgraded (category/tags/status/counts/optional image/indexes); public `GET /post` list (pagination/search/filter/sort) + `GET /post/:id`; zod validators; seed + backfill scripts run |
-| T1.2 | Frontend foundation (layout, routing, data layer) | TODO | — | — |
+| T1.2 | Frontend foundation (layout, routing, data layer) | DONE | _(see git log)_ | `@tanstack/react-query` + `zod` + `@hookform/resolvers` + `date-fns`; cookie-based `AuthProvider`/`useAuth` (session from `/user/me`), 401 interceptor; `Navbar`/`Footer` + mobile Sheet + light/dark toggle; route map + guards + 404; API types; backend `/me` + login now return `role`/`avatar`/`bio` |
 | T1.3 | Home page | TODO | — | — |
 | T1.4 | Explore and post detail | TODO | — | — |
 | T2.1 | Auth pages | TODO | — | — |
@@ -56,6 +56,38 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T4.4 | Docs and release prep | TODO | — | — |
 
 ## Open issues / assumptions
+
+- **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
+  /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
+  impossible. Both now also return `role` (defaulting to `"user"`), `avatar`
+  and `bio`. Verified live: login + `/me` return `"role":"user"` for a fresh
+  user. `register` still returns `{ id, name, email }` (unchanged; not consumed
+  by the client).
+- **T1.2 — auth is now cookie-only.** Removed the localStorage mirror and the
+  `useUser`/`UserProvider` pair (deleted, approved). `AuthProvider` treats
+  `GET /user/me` as the source of truth (`useQuery` key `["me"]`). `login(user)`
+  seeds the cache; `logout()` calls `POST /user/sign-out` then
+  `queryClient.clear()`.
+- **T1.2 — legacy files touched minimally:** `Login.tsx` and `dashboard/Post.tsx`
+  now use `useAuth` (unchanged behavior; full rebuilds come in T2.1/T2.2).
+  `dashboard/Posts.tsx` reads `data.data.posts` (was `data.data.post`, a T1.1
+  runtime mismatch) so the routed `/dashboard` no longer crashes.
+- **T1.2 — placeholder pages:** `HomePage`, `ExplorePage`, `PostDetailPage`,
+  `ProfilePage`, `SavedPage`, `AdminPage` are intentionally thin stubs wired
+  into the router; they are replaced in T1.3, T1.4, T2.5, T2.6 and Phase 3.
+- **T1.2 — brand/wordmark:** navbar uses `DevMotiv` (repo has no official name).
+  Trivial to rename later.
+- **T1.2 — theme:** custom `ThemeProvider` (light/dark/system, `devmotiv-theme`
+  in localStorage, `.dark` on `<html>`), no `next-themes` per the plan.
+- **T1.2 — test data (additive, not deleted):** `t12test<timestamp>@example.com`
+  (plain user) created via the API to verify `role` in login/`/me`. Delete needs
+  your approval.
+- **T1.2 — 401 interceptor:** clears the Query cache, toasts and redirects to
+  `/login` for any non-`/user/me` 401. The `/user/me` session probe is excluded
+  (its 401 is the normal logged-out state and is swallowed to `null`).
+- **T1.2 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS; live curl: health 200, `/user/me` without
+  cookie 401, login+`/me` include `role`.
 
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.

@@ -10,10 +10,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button"
 import React, { useEffect, useState } from "react";
-import axios, { isAxiosError } from "axios";
+import { isAxiosError } from "axios";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
-import useUser from "@/hooks/useUser";
+import { api } from "@/lib/api";
+import { useAuth } from "@/features/auth/auth-context";
 import type { LoginResponse } from "@/types/user";
 
 const Login = () => {
@@ -24,7 +25,7 @@ const Login = () => {
     password: "",
   });
 
-  const { login, user } = useUser();
+  const { login, user } = useAuth();
  
   useEffect(() => {
     if (user) navigate("/");
@@ -41,13 +42,10 @@ const Login = () => {
     event.preventDefault();
     try {
       setIsLoading(true);
-      const { data } = await axios.post<LoginResponse>(
-        "/api/user/login",
-        formData,
-      );
+      const { data } = await api.post<LoginResponse>("/user/login", formData);
       toast.success("Login Successfuly!");
       setIsLoading(false);
-      login(data.userData.user, data.expire);
+      login(data.userData.user);
     } catch (error) {
       if (isAxiosError(error)) {
         const errorMessage = error.response?.data?.message || error.message;

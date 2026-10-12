@@ -1,14 +1,17 @@
-import { Outlet } from "react-router";
-import "./App.css";
-import Header from "./components/Header";
+import { Outlet } from "react-router"
+import { Footer } from "./components/layout/Footer"
+import { Navbar } from "./components/layout/Navbar"
 
 function App() {
   return (
-    <>
-      <Header />
-      <Outlet />
-    </>
-  );
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  )
 }
 
-export default App;
+export default App

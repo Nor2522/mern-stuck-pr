@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { getErrorMessage } from "@/lib/error"
-import useUser from "@/hooks/useUser"
+import { useAuth } from "@/features/auth/auth-context"
 import type { PostType } from "@/types/post"
 import { Button } from "@/components/ui/button"
 import {
@@ -230,7 +230,7 @@ const Post = ({
   post: PostType
   onChanged?: () => void
 }) => {
-  const { user } = useUser()
+  const { user } = useAuth()
   const currentUserId = user?._id
   const isOwner = Boolean(currentUserId && post.author?._id === currentUserId)
   const createdAt = formatDate(post.createdAt)

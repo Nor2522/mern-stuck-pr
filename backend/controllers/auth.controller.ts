@@ -82,7 +82,14 @@ const signIn = async (req: Request, res: Response) => {
       success: true,
       message: "User signed in successfully",
       userData: {
-        user: { _id: user._id, name: user.name, email: user.email },
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role ?? "user",
+          avatar: user.avatar,
+          bio: user.bio,
+        },
       },
       expire: ms(EXPIRE_IN),
     });

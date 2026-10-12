@@ -13,7 +13,14 @@ export const getMe = async (req: Request, res: Response) => {
   return res.status(200).json({
     success: true,
     data: {
-      user: { _id: user._id, name: user.name, email: user.email },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role ?? "user",
+        avatar: user.avatar,
+        bio: user.bio,
+      },
     },
   });
 };

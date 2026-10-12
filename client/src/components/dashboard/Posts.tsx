@@ -32,7 +32,7 @@ const Posts = ({
       setLoading(true)
       try {
         const { data } = await api.get("/post")
-        setPostData(data.data.post)
+        setPostData(data.data.posts)
       } catch (error) {
         toast.error(getErrorMessage(error))
       } finally {
