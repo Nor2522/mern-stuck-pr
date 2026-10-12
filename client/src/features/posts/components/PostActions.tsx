@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/features/auth/auth-context"
 import { useToggleBookmark, useToggleLike } from "@/features/posts/api"
 import { ShareMenu } from "./ShareMenu"
+import { PostMenu } from "./PostMenu"
 import type { PostType } from "@/types/post"
 import { cn } from "cn"
 
@@ -80,6 +81,7 @@ export const PostActions = ({
       </Button>
 
       <ShareMenu postId={post._id} title={post.title} size={size} />
+      <PostMenu post={post} size={size} />
     </div>
   )
 }

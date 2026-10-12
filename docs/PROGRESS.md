@@ -45,7 +45,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T2.4 | Comments | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.5 | Bookmarks (Saved) | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.6 | Profile | DONE | _(see git log)_ | Public `/u/:id` (avatar, name, bio, join date, published posts grid + count, 404 state); `/settings` (edit name/bio, avatar upload to Cloudinary with old-image destroy, duplicate-name guard, change password with current-password check); backend `GET /user/:id` (public fields only), `PUT /user/me` (multipart), `PUT /user/me/password`; `ProfilePage` updates navbar/cards/comments via react-query invalidation; added `Settings` menu item |
-| T2.7 | Report content | TODO | — | — |
+| T2.7 | Report content | DONE | _(see git log)_ | `Report` model (`reporter, post, reason enum, details, status`, unique `{reporter,post}`, `resolvedBy/At` for T3.4); `POST /post/:id/report` (zod reason enum, own-post 404, duplicate 409 `"You have already reported this post"`); UI "⋯" `PostMenu` dropdown on card + detail with `ReportDialog` (reason select + optional details); report option hidden on own posts; post deletion now cascades likes/bookmarks/comments/reports |
 | T3.1 | Admin layout and dashboard | TODO | — | — |
 | T3.2 | Manage users | TODO | — | — |
 | T3.3 | Manage posts | TODO | — | — |
@@ -225,6 +225,10 @@ Pre-existing lint findings (baseline, target for T0.2):
   avatar remain — DB deletes need your approval (accumulating: `t12test<ts>`,
   `t14temp<ts>`, `t14b<ts>`, `t21test<ts>`, `t22test<ts>`, `t26test<ts>`,
   `t26dup<ts>`).
+- **T2.7 — no new accounts:** the report flow was verified with the existing
+  `t26test<ts>`/`t26dup<ts>` accounts; the 3 temp posts and their reports were
+  removed through the API (post-delete now cascades to reports), so no extra
+  DB cleanup is needed from this task.
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
   `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and

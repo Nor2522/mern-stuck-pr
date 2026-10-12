@@ -4,6 +4,8 @@ import Post, { type PostType } from "../models/post.model";
 import Category from "../models/category.model";
 import Like from "../models/like.model";
 import Bookmark from "../models/bookmark.model";
+import Comment from "../models/comment.model";
+import Report from "../models/report.model";
 import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
 import {
@@ -316,6 +318,14 @@ export const deletePost = async (req: Request, res: Response) => {
     await cloudinary.uploader.destroy(post.image.publicId);
   }
   await post.deleteOne();
+
+  // Nadiifi waxyaabaha ku xidhnaa post-ka (likes, bookmarks, comments, reports)
+  await Promise.all([
+    Like.deleteMany({ post: post._id }),
+    Bookmark.deleteMany({ post: post._id }),
+    Comment.deleteMany({ post: post._id }),
+    Report.deleteMany({ post: post._id }),
+  ]);
 
   res.status(200).json({ success: true, message: "Post deleted" });
 };
