@@ -8,7 +8,7 @@ import {
 
 interface User {
   id: string;
-  name: String;
+  name: string;
   email: string;
 }
 const UserContext = createContext<any | null>(null);
