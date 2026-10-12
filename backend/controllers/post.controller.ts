@@ -8,7 +8,9 @@ const authorPapulate = { path:"author", select:"name email"}
 // get posts
 export const getPost = async (req: Request, res: Response) => {
   try {
-    const post = await Post.find().populate(authorPapulate)
+    const post = await Post.find()
+      .populate(authorPapulate)
+      .sort({ createdAt: -1 })
     res.status(200).json({ success: true, data: { post } })
   } catch (error) {
     res.status(400).json({ success: false, message: (error as Error).message })
