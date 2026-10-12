@@ -24,9 +24,14 @@ export const ProtectedRoute = ({ children }: { children: ReactNode }) => {
 
 export const GuestRoute = ({ children }: { children: ReactNode }) => {
   const { user, isLoading } = useAuth()
+  const location = useLocation()
 
   if (isLoading) return <LoadingScreen />
-  if (user) return <Navigate to="/" replace />
+  if (user) {
+    // Marka la soo galo, ku noqo bogga isticmaalahu ka yimid haddii uu jiro.
+    const from = (location.state as { from?: string } | null)?.from
+    return <Navigate to={from ?? "/"} replace />
+  }
   return <>{children}</>
 }
 

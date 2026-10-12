@@ -16,11 +16,19 @@ const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
 
-    const userExist = await User.findOne({ $or: [{ email }, { name }] });
-    if (userExist) {
+    if (await User.exists({ email })) {
       return res.status(400).json({
         success: false,
-        message: "User or email already exists",
+        message: "Email-kan hore ayaa loo isticmaalay",
+        errors: [{ field: "email", message: "Email-kan hore ayaa loo isticmaalay" }],
+      });
+    }
+
+    if (await User.exists({ name })) {
+      return res.status(400).json({
+        success: false,
+        message: "Magacan hore ayaa loo isticmaalay",
+        errors: [{ field: "name", message: "Magacan hore ayaa loo isticmaalay" }],
       });
     }
 

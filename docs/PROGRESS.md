@@ -39,7 +39,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T1.3 | Home page | DONE | _(see git log)_ | Hero (role-aware CTA), Latest posts (6 `PostCard`s, skeleton/empty/error), category chips, How it works, final CTA; react-query hooks + Cloudinary optimized URLs + date-fns |
 | T1.4 | Explore and post detail | DONE | _(see git log)_ | `/explore`: debounced search, category chips, latest/popular sort, pagination — all state in the URL. `/posts/:id`: full post, author card, tags, 404 state. Per-page `<title>`. New `Pagination` UI + `usePosts`/`usePost` hooks |
 | T2.0 | Reactions + share (pulled forward from T2.3–T2.5) | DONE | _(see git log)_ | Real **likes**, **comments**, **bookmarks** on every post + a **share** menu on each card & detail. New `Like`/`Comment`/`Bookmark` models, `like`/`comment`/`bookmark` controllers + routes, `optionalAuth`; `#comments` section, `/saved` list |
-| T2.1 | Auth pages | TODO | — | — |
+| T2.1 | Auth pages | DONE | _(see git log)_ | `/login` + `/register` rebuilt with `Card` + `Field` + react-hook-form + zod (name 2–50, valid email, password ≥8 + letter + number, confirm); show/hide password; server field errors mapped; post-login redirect to `state.from`; backend zod-validated bodies (NoSQL-injection safe) |
 | T2.2 | Create, edit, delete posts | TODO | — | — |
 | T2.3 | Likes | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.4 | Comments | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
@@ -152,6 +152,39 @@ Pre-existing lint findings (baseline, target for T0.2):
   401/400/201/list/delete (+403 cross-user), bookmarks 401/toggle/list. Test
   residue (comment/like/bookmark) removed — post counts back to `0/0`,
   bookmarks `0`.
+- **T2.1 — auth pages rebuilt.** `LoginPage`/`RegisterPage` now own their forms
+  (the old `client/src/components/Login.tsx` + `Register.tsx` are no longer
+  imported; deleting them needs your approval). Uses `Card` + the base-nova
+  `Field`/`FieldLabel`/`FieldError` primitives with `react-hook-form` +
+  `zodResolver` (`client/src/features/auth/schemas.ts`). New
+  `features/auth/components/PasswordInput.tsx` (eye/eye-off toggle) and
+  `signIn`/`signUp` in `features/auth/api.ts`. Server `400` `errors[]` from
+  register map onto the name/email fields; everything else becomes a root error
+  + toast.
+- **T2.1 — `GuestRoute` now honors `state.from`:** a logged-out visit to
+  `/saved` bounces to `/login` carrying `state.from="/saved"`, and after a
+  successful login `GuestRoute` redirects back to `/saved` (no race with a
+  manual `navigate`). Logout already `POST /user/sign-out` + `queryClient.clear()`
+  + `navigate("/")` (`Navbar.handleLogout`).
+- **T2.1 — backend validation:** new `validators/auth.validator.ts`
+  (`registerSchema`/`loginSchema`) + `middlewares/validate.middleware.ts`
+  (`validateBody`) applied to `POST /user/sign-up` and `/user/login`. Login
+  returns the same generic `"Invalid email or password"` for unknown email or
+  wrong password. `register` now returns field-scoped `errors[]`
+  (`email`/`name` already used).
+- **T2.1 — SC evidence:** `bun run build` PASS; `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. curl: injection `{"email":{"$ne":null},"password":"x"}`
+  → **400**; non-string email → 400; weak password → 400; valid register → 201;
+  login → 200 + httpOnly `token` cookie; `/me` → 200; `sign-out` → 200 with
+  `token=; Expires=Thu, 01 Jan 1970` and `/me` → **401** afterwards; wrong
+  email vs wrong password → identical `"Invalid email or password"`. Live CDP:
+  `/saved` (logged out) → `/login` with login card; empty submit shows the zod
+  field errors; password toggle flips `password`→`text` (and relabels); after a
+  real login it landed back on `/saved` ("Saved posts"). (A second CDP run hit
+  the login `rateLimit` 5/15min → 429, which is why that pass showed `/login`.)
+- **T2.1 — new temp user:** `t21test<ts>@example.com` / `Passw0rd1` created to
+  verify the flow (DB deletes need your approval; also still present:
+  `t12test<ts>`, `t14temp<ts>`, `t14b<ts>`).
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
   `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and
