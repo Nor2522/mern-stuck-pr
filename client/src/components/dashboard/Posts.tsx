@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react"
 import { toast } from "sonner"
 import { api } from "@/lib/api"
+import { getErrorMessage } from "@/lib/error"
 import { Card, CardContent } from "@/components/ui/card"
 import type { PostType } from "@/types/post"
 import Post from "./Post"
-
-const getErrorMessage = (error: unknown) => {
-  if (error instanceof Error) return error.message
-  return "Server-ka lama gaari karo"
-}
 
 const SkeletonCard = () => (
   <Card className="animate-pulse">
@@ -21,7 +17,13 @@ const SkeletonCard = () => (
   </Card>
 )
 
-const Posts = ({ refreshKey = 0 }: { refreshKey?: number }) => {
+const Posts = ({
+  refreshKey = 0,
+  onChanged,
+}: {
+  refreshKey?: number
+  onChanged?: () => void
+}) => {
   const [postData, setPostData] = useState<PostType[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -59,7 +61,7 @@ const Posts = ({ refreshKey = 0 }: { refreshKey?: number }) => {
   return (
     <div className={gridClass}>
       {postData.map((post) => (
-        <Post key={post._id} post={post} />
+        <Post key={post._id} post={post} onChanged={onChanged} />
       ))}
     </div>
   )
