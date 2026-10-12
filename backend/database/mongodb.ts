@@ -1,19 +1,16 @@
 import mongoose from "mongoose";
 import { DB_URI } from "../config/env.ts";
 
-if (!DB_URI){
-   throw new Error(
-    "please define the MONGO_URI enviroment variable inside .env <development/production>.local"
-   )
-}
+const connectDB = async () => {
+  try {
+    await mongoose.connect(DB_URI, { retryWrites: false });
+    console.log("MongoDB si guul leh ayaa loogu xirmay");
+  } catch (error) {
+    console.error(
+      `Khalad: MongoDB lama xirmin: ${(error as Error).message}`,
+    );
+    process.exit(1);
+  }
+};
 
-const connetDB = async () => {
-    try {
-        await mongoose.connect(DB_URI as string, { retryWrites: false });
-        console.log("mongodb connnected successfuly ");
-    } catch (error) {
-        console.log(`there is an error: ${error}`); 
-    }
-}
-
-export default connetDB
+export default connectDB;

@@ -32,7 +32,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 |---|---|---|---|---|
 | T0.1 | Baseline and progress log | DONE | _(see checkout)_ | Created `docs/BUILD_PLAN.md`, `docs/PROGRESS.md`, `backend/.env.example`, `client/.env.example` |
 | T0.2 | Cleanup and consistency | DONE | _(see git log)_ | sonner-only toasts, typed `AuthUser`, lint 0/0, `api.ts` reads `VITE_API_URL`, removed `react-hot-toast` |
-| T0.3 | Backend foundation | TODO | — | — |
+| T0.3 | Backend foundation | DONE | _(see git log)_ | env validation (zod), helmet, rate limit, global error + 404, `/api/health`, `GET /api/user/me`, cookie hardened, token removed from body |
 | T0.4 | Roles, banned users, admin seed | TODO | — | — |
 | T1.1 | Post model upgrade and public API | TODO | — | — |
 | T1.2 | Frontend foundation (layout, routing, data layer) | TODO | — | — |
@@ -57,11 +57,17 @@ Pre-existing lint findings (baseline, target for T0.2):
 
 ## Open issues / assumptions
 
-- **Env var naming mismatch (carry-over to T0.3):** current code in
-  `backend/config/env.ts` reads `DB_URI` and `EXPIRE_IN`, while the plan's
-  `.env.example` uses `MONGODB_URI` and `JWT_EXPIRES_IN`. T0.1 only creates the
-  example files; T0.3 (env validation) must reconcile the names so the app reads
-  what the example documents.
+- **Resolved in T0.3 (env names):** `backend/config/env.ts` now reads
+  `MONGODB_URI` and `JWT_EXPIRES_IN` (as documented in `.env.example`) and falls
+  back to the legacy `DB_URI` / `EXPIRE_IN`, so the existing `.env` keeps
+  working. Env is validated with zod at startup and the process exits with a
+  clear message if anything is missing.
+- **`req.user` typing added early (T0.3):** `backend/types/express.d.ts` augments
+  `Express.Request` with `user?: HydratedDocument<UserType>` (planned for T0.4),
+  so the new `/me` controller avoids `(req as any)`. T0.4 still adds
+  `requireRole`, `isBanned` and the rest.
+- **Test data:** T0.3 API verification created one throwaway user in the dev DB
+  (`t03test<timestamp>@example.com`). Not deleted (DB deletes need approval).
 - **Resolved in T0.2:** `client/src/lib/api.ts` now reads
   `import.meta.env.VITE_API_URL` (falls back to `http://localhost:5000/api`).
   Note this bypasses the Vite `/api` proxy for calls made through `api`;
@@ -71,8 +77,8 @@ Pre-existing lint findings (baseline, target for T0.2):
   per the plan, but the backend login response does not include `role` until
   T0.4. Until then the value is `undefined` at runtime; no code branches on it
   yet.
-- **Pending deletions (need your approval — AGENTS.md says ask before deleting):**
-  - `backend/controllers/user.controller.ts` is an empty stub (never imported).
-    Plan T0.2 says delete it; T0.3 (`GET /api/user/me`) or T2.6 may want it.
+- **Pending deletion (needs your approval — AGENTS.md says ask before deleting):**
   - Root `package.json` is stray (only `multer` + `@types/multer`, no scripts).
     Removing it also orphans the root `node_modules`; not done without approval.
+  - (`backend/controllers/user.controller.ts` was resolved in T0.3: instead of
+    deleting, it now implements `GET /api/user/me`.)

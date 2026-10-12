@@ -1,12 +1,17 @@
-import { type Request, type Response } from "express";
+import type { Request, Response } from "express";
 import User from "../models/user.model";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { EXPIRE_IN, JWT_SECRET } from "../config/env";
 import ms from "ms";
 
-type: {
-}
+const cookieOptions = () => ({
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax" as const,
+  maxAge: ms(EXPIRE_IN),
+});
+
 const register = async (req: Request, res: Response) => {
   try {
     const { name, email, password } = req.body;
@@ -14,6 +19,7 @@ const register = async (req: Request, res: Response) => {
     const userExist = await User.findOne({ $or: [{ email }, { name }] });
     if (userExist) {
       return res.status(400).json({
+        success: false,
         message: "User or email already exists",
       });
     }
@@ -23,6 +29,7 @@ const register = async (req: Request, res: Response) => {
     await user.save();
 
     return res.status(201).json({
+      success: true,
       message: "User created successfully",
       user: {
         id: user._id,
@@ -32,6 +39,7 @@ const register = async (req: Request, res: Response) => {
     });
   } catch (error) {
     return res.status(500).json({
+      success: false,
       message: "Internal server error",
     });
   }
@@ -44,6 +52,7 @@ const signIn = async (req: Request, res: Response) => {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -54,6 +63,7 @@ const signIn = async (req: Request, res: Response) => {
     );
     if (!isPasswordValid) {
       return res.status(400).json({
+        success: false,
         message: "Invalid email or password",
       });
     }
@@ -66,33 +76,27 @@ const signIn = async (req: Request, res: Response) => {
       },
     );
 
-    res.cookie("token", token, {
-      httpOnly: true, // Frontend JS ma akhrin karo (xakameynta XSS Attack)
-      secure: process.env.NODE_ENV === "production", // HTTPS oo kaliya marka lagu jiro production
-      sameSite: "strict", // Xakameynta CSRF Attack
-      maxAge: ms(EXPIRE_IN),
-    });
-    user.password = "";
+    res.cookie("token", token, cookieOptions());
+
     return res.status(200).json({
       success: true,
       message: "User signed in successfully",
-      token:token,
-      userData: { user },
+      userData: {
+        user: { _id: user._id, name: user.name, email: user.email },
+      },
       expire: ms(EXPIRE_IN),
     });
   } catch (error) {
     return res.status(500).json({
-      message: `Internal server error: ${error}`,
+      success: false,
+      message: "Internal server error",
     });
   }
 };
 
 const signOut = (req: Request, res: Response) => {
-  res.clearCookie("token", {
-    httpOnly: true, // Frontend JS ma akhrin karo (xakameynta XSS Attack)
-    secure: process.env.NODE_ENV === "production", // HTTPS oo kaliya marka lagu jiro production
-    sameSite: "strict", // Xakameynta CSRF Attack
-  });
+  const { maxAge: _maxAge, ...clearOptions } = cookieOptions();
+  res.clearCookie("token", clearOptions);
   return res.status(200).json({
     success: true,
     message: "User signed out successfully",
