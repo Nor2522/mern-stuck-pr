@@ -44,7 +44,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T2.3 | Likes | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.4 | Comments | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.5 | Bookmarks (Saved) | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
-| T2.6 | Profile | TODO | — | — |
+| T2.6 | Profile | DONE | _(see git log)_ | Public `/u/:id` (avatar, name, bio, join date, published posts grid + count, 404 state); `/settings` (edit name/bio, avatar upload to Cloudinary with old-image destroy, duplicate-name guard, change password with current-password check); backend `GET /user/:id` (public fields only), `PUT /user/me` (multipart), `PUT /user/me/password`; `ProfilePage` updates navbar/cards/comments via react-query invalidation; added `Settings` menu item |
 | T2.7 | Report content | TODO | — | — |
 | T3.1 | Admin layout and dashboard | TODO | — | — |
 | T3.2 | Manage users | TODO | — | — |
@@ -217,6 +217,14 @@ Pre-existing lint findings (baseline, target for T0.2):
 - **T2.1 — new temp user:** `t21test<ts>@example.com` / `Passw0rd1` created to
   verify the flow (DB deletes need your approval; also still present:
   `t12test<ts>`, `t14temp<ts>`, `t14b<ts>`).
+- **T2.6 — new temp users:** `t26test<ts>@example.com` (final password
+  `Finalpass42` — it was changed through the settings UI) and
+  `t26dup<ts>@example.com` were created to verify the profile settings,
+  password change and duplicate-name guard. Temp post + comment and the test
+  avatar upload were cleaned up, but the two accounts and their Cloudinary
+  avatar remain — DB deletes need your approval (accumulating: `t12test<ts>`,
+  `t14temp<ts>`, `t14b<ts>`, `t21test<ts>`, `t22test<ts>`, `t26test<ts>`,
+  `t26dup<ts>`).
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
   `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and

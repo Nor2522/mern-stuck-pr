@@ -40,6 +40,7 @@ const UserLinks = ({ user }: { user: AuthUser }) => (
       My posts
     </DropdownMenuItem>
     <DropdownMenuItem render={<Link to="/saved" />}>Saved</DropdownMenuItem>
+    <DropdownMenuItem render={<Link to="/settings" />}>Settings</DropdownMenuItem>
     {user.role === "admin" && (
       <DropdownMenuItem render={<Link to="/admin" />}>Admin</DropdownMenuItem>
     )}

@@ -8,8 +8,8 @@ const Userschema = new Schema(
       type: String,
       required: true,
       trim: true,
-      minLength: 3,
-      maxLength: 20,
+      minLength: 2,
+      maxLength: 50,
     },
     email: {
       type: String,

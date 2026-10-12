@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // password: ugu yaraan 8 xaraf, hal xaraf iyo hal lambar
-const passwordSchema = z
+export const passwordSchema = z
   .string()
   .min(8, "password waa ugu yaraan 8 xaraf")
   .regex(/[A-Za-z]/, "password waa inuu lahaadaa ugu yaraan hal xaraf")

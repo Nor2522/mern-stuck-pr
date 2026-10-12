@@ -20,6 +20,14 @@ export interface UserSummary {
   avatar?: UserAvatar
 }
 
+export interface PublicProfile {
+  _id: string
+  name: string
+  avatar?: UserAvatar
+  bio?: string
+  createdAt: string
+}
+
 export interface LoginResponse {
   success: boolean
   message: string

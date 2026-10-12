@@ -10,6 +10,7 @@ import PostDetailPage from "./pages/PostDetailPage"
 import ProfilePage from "./pages/ProfilePage"
 import RegisterPage from "./pages/RegisterPage"
 import SavedPage from "./pages/SavedPage"
+import SettingsPage from "./pages/SettingsPage"
 import { GuestRoute, ProtectedRoute, RoleRoute } from "./features/auth/guards"
 
 export const router = createBrowserRouter([
@@ -50,6 +51,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <SavedPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "settings",
+        element: (
+          <ProtectedRoute>
+            <SettingsPage />
           </ProtectedRoute>
         ),
       },
