@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useAdminStats } from "@/features/admin/api"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import type { AdminDailyPoint } from "@/types/admin"
 
 const initials = (name: string) => name.trim().charAt(0).toUpperCase() || "?"
@@ -131,6 +132,7 @@ const DailyChart = ({
 )
 
 const AdminDashboard = () => {
+  useDocumentTitle("Admin dashboard")
   const stats = useAdminStats()
   const data = stats.data
 

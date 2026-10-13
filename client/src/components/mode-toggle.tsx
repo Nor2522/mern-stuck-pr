@@ -9,7 +9,7 @@ export const ModeToggle = () => {
     <Button
       variant="ghost"
       size="icon"
-      aria-label="Beddel muuqaalka (toggle theme)"
+      aria-label="Toggle color theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
       {resolvedTheme === "dark" ? <Sun /> : <Moon />}

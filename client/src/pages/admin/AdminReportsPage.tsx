@@ -44,6 +44,7 @@ import {
   useUpdateReportStatus,
   type AdminReportsParams,
 } from "@/features/admin/api"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import type {
   ReportPostRef,
   ReportReason,
@@ -74,6 +75,7 @@ const formatDate = (date: string) =>
   })
 
 const AdminReportsPage = () => {
+  useDocumentTitle("Reports")
   const [page, setPage] = useState(1)
   const [status, setStatus] = useState<ReportStatus>("open")
 

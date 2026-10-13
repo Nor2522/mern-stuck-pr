@@ -42,6 +42,7 @@ import {
 } from "@/features/admin/api"
 import { CategoryForm } from "@/features/admin/components/CategoryForm"
 import { FilterSelect } from "@/features/admin/components/FilterSelect"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import type { AdminCategory } from "@/types/category"
 
 const formatDate = (date: string) =>
@@ -52,6 +53,7 @@ const formatDate = (date: string) =>
   })
 
 const AdminCategoriesPage = () => {
+  useDocumentTitle("Categories")
   const categories = useAdminCategories()
   const createCategory = useCreateCategory()
   const renameCategory = useRenameCategory()

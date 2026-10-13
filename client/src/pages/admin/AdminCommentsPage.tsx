@@ -35,6 +35,7 @@ import {
   type AdminCommentsParams,
 } from "@/features/admin/api"
 import { useDebouncedValue } from "@/hooks/useDebouncedValue"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import type { AdminComment } from "@/types/admin"
 
 const initials = (name: string) => name.trim().charAt(0).toUpperCase() || "?"
@@ -47,6 +48,7 @@ const formatDate = (date: string) =>
   })
 
 const AdminCommentsPage = () => {
+  useDocumentTitle("Comments")
   const [page, setPage] = useState(1)
   const [search, setSearch] = useState("")
 

@@ -40,6 +40,7 @@ import {
 } from "@/features/admin/api"
 import { FilterSelect } from "@/features/admin/components/FilterSelect"
 import { useDebouncedValue } from "@/hooks/useDebouncedValue"
+import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 import type { AdminUser } from "@/types/admin"
 import type { UserRole } from "@/types/user"
 
@@ -53,6 +54,7 @@ const formatDate = (date: string) =>
   })
 
 const AdminUsersPage = () => {
+  useDocumentTitle("Users")
   const { user: currentUser } = useAuth()
 
   const [page, setPage] = useState(1)

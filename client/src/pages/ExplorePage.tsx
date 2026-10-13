@@ -149,9 +149,17 @@ const ExplorePage = () => {
           {searchInput && (
             <button
               type="button"
-              onClick={() => setSearchInput("")}
+              onClick={() => {
+                setSearchInput("")
+                setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev)
+                  next.delete("q")
+                  next.delete("page")
+                  return next
+                })
+              }}
               aria-label="Clear search"
-              className="absolute top-1/2 right-2 -translate-y-1/2 rounded-md p-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="absolute top-1/2 right-2 flex -translate-y-1/2 cursor-pointer items-center rounded-md p-1 text-muted-foreground transition-colors outline-none hover:bg-muted hover:text-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
             >
               <X className="size-4" />
             </button>
