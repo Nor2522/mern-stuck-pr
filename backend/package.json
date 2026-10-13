@@ -5,8 +5,9 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch server.ts",
+    "build": "bun build ./server.ts --target=bun --outdir=dist",
+    "start": "NODE_ENV=production bun ./dist/server.js",
     "test": "bun test",
-    "prod": "bun --env-file=local.production.env run backend/config/env.ts && bun run backend/server.ts",
     "seed:admin": "bun run scripts/seed-admin.ts",
     "seed:categories": "bun run scripts/seed-categories.ts",
     "report:orphans": "bun run scripts/report-orphan-posts.ts",

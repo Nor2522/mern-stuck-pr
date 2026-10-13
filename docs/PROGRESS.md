@@ -53,13 +53,31 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.5 | Manage categories | DONE | _(this commit)_ | Backend: `GET/POST /api/admin/categories`, `PATCH/DELETE /api/admin/categories/:id` (auto-slug, friendly 409 on duplicate name/slug, per-category `postsCount`, delete blocked with 409 while posts remain, `?reassignTo=<id>` moves posts then deletes). Client: `/admin/categories` table + create/rename `Dialog` (RHF + zod) + delete `AlertDialog` with reassign `FilterSelect`; invalidates admin + public `categories` keys. New `backend/utils/slugify.ts`. |
 | T4.1 | Security hardening review | DONE | _(this commit)_ | Audited every route (auth/role/ownership + zod inputs); added `writeLimiter` (120/15min) to all write endpoints, zod for the comment body + public list queries, upload allowlist (`files:1`, JPEG/PNG/WebP/GIF) and `MulterError`→400; cookie flags/helmet/logs confirmed; no secrets in branch history |
 | T4.2 | Tests | DONE | _(this commit)_ | Split `app.ts` (exported Express app) from `server.ts` (listen + DB) so `supertest` can drive the API; `backend/tests/api.test.ts` — 12 tests on `mongodb-memory-server` covering auth (register/login/me/logout, NoSQL-injection 400, duplicate email 400), posts (public list, create 201, update/delete owner 200 + non-owner 403), admin (user 403 / admin 200, self role/ban 400, ban → 403 `Account suspended`), likes toggle and comments (add 201 + empty 400 + list); `test` script + `supertest`/`mongodb-memory-server` devDeps |
-| T4.3 | UX polish pass | DONE | _(uncommitted)_ | Error boundary page + root `errorElement`; per-page titles for all 6 admin pages; `index.html` meta description + theme-color; fixed ProfilePage + DashBoard stats state gaps; keyboard/focus fixes (PasswordInput a11y labels + ring, Explore clear-search ring, ModeToggle English label). Verified: 42/42 responsive+theme sweep, keyboard-only login/register/create/delete, build+lint+tsc PASS |
-| T4.4 | Docs and release prep | TODO | — | — |
+| T4.3 | UX polish pass | DONE | `f76fdc8`, `4f05d20`, `562a249` | Error boundary page + root `errorElement`; per-page titles for all 6 admin pages; `index.html` meta description + theme-color; fixed ProfilePage + DashBoard stats state gaps; keyboard/focus fixes (PasswordInput a11y labels + ring, Explore clear-search ring, ModeToggle English label). Verified: 42/42 responsive+theme sweep, keyboard-only login/register/create/delete, build+lint+tsc+tests PASS |
+| T4.4 | Docs and release prep | DONE | _(this commit)_ | Rewrote root `README.md` (about, roles, stack, setup, env tables, scripts, API overview, production/deploy notes); completed both `.env.example` files (names + comments); updated `AGENTS.md` (test/build/start commands, dropped 3 now-fixed rough edges, deployment + limitations); replaced the broken `prod` script with `build`+`start` (verified booting + `/api/health` 200) and made the backend suite hermetic (`bunfig.toml` + `tests/setup.ts`, no `.env` needed); made `docs/PROGRESS.md` accurate. Verified by a fresh clone (details below) |
+
+## Final acceptance (after T4.4)
+
+Recorded on: 2026-10-13
+
+| Acceptance item | Status | Evidence |
+|---|---|---|
+| Visitor: home, explore, post detail, public profile, 404 work logged-out | PASS | T4.3 responsive/theme sweep 42/42 across `/`, `/explore`, `/posts/:id`, `/u/:id`, `/login`, `/register`, 404 (logged-out `401` on `/me` is the only expected error); public endpoints `200` in tests |
+| User: register, login, create/edit/delete post, like, comment, bookmark, report, edit profile, logout | PASS | `backend/tests/api.test.ts` covers register/login/me/logout, post create/update/delete (owner vs non-owner), like toggle, comments; T2.x recorded the UI run-throughs |
+| Admin: dashboard, users, posts, comments, reports, categories, all safety rules | PASS | tests cover admin `403` vs `200`, self role/ban `400`, ban → `403 Account suspended`; T3.x recorded the UI run-throughs + per-endpoint curl evidence |
+| SC pass | PASS | client build PASS, client lint 0/0, backend `tsc --noEmit` PASS, `bun run test` 12/0 |
+| Tests pass | PASS | 12 pass / 0 fail / 44 expect() calls |
+| 0 lint errors | PASS | `eslint .` exit 0, no output |
+| no `any` | PASS | `rg ': any|as any'` over `backend` + `client/src` → none |
+| no `console.log` | PASS | only bootstrap logs remain (`server.ts` listen, `database/mongodb.ts` connect); none in application logic |
+| no unused deps | **PARTIAL** | declared-but-unused: `backend` → `jwt`, `bson`, `dotenv-cli`, `nodemon`; `client` → `shadcn` (CLI, not imported). Pre-existing; removal needs your approval |
+| `docs/PROGRESS.md` complete and accurate | PASS | this file |
 
 ## Open issues / assumptions
 
-- **T4.3 — UX polish pass (uncommitted):** error boundary + per-page titles +
-  `index.html` meta/theme-color + state + a11y fixes. Details:
+- **T4.3 — UX polish pass (committed `f76fdc8`, `4f05d20`, `562a249`):**
+  error boundary + per-page titles + `index.html` meta/theme-color + state + a11y
+  fixes. Details:
   - **Error boundary page:** new `client/src/pages/RouteErrorPage.tsx`
     (`useRouteError`, "Something went wrong" + Back home + Reload page +
     route path), wired as the root route's `errorElement` in `router.tsx` so it
@@ -105,6 +123,32 @@ Pre-existing lint findings (baseline, target for T0.2):
     run the authenticated keyboard flow; its post was deleted through the flow.
     The account itself was deleted after your approval (counted users
     26→25 with posts unchanged at 7).
+
+- **T4.4 — docs and release prep:** root `README.md` fully rewritten (what it
+  is, roles/features, stack, folder structure, prerequisites, two-terminal
+  getting-started, backend + client env-var tables, every backend/client script,
+  the full `/api` overview, and production build + deployment notes).
+  `backend/.env.example` and `client/.env.example` kept names-only with short
+  comments (legacy `DB_URI`/`EXPIRE_IN` noted; `ADMIN_*` marked seed-only;
+  `VITE_API_URL` marked optional in dev). `AGENTS.md` updated: added
+  `bun run test` / `build` / `start` and `bunx tsc --noEmit`, corrected the
+  env-var list to `MONGODB_URI` / `JWT_EXPIRES_IN`, removed the three "rough
+  edges" that are now fixed (`/sign-out` → `signOut`, `PUT /post/:id`,
+  `user.controller.ts` implemented), and added deployment/limitations notes.
+  **Production scripts:** the broken `"prod"` script (pointed at a non-existent
+  `local.production.env` and `backend/config/env.ts`) was replaced by
+  `"build": "bun build ./server.ts --target=bun --outdir=dist"` and
+  `"start": "NODE_ENV=production bun ./dist/server.js"`. **Hermetic tests:** new
+  `backend/bunfig.toml` + `backend/tests/setup.ts` preload dummy env defaults, so
+  `bun run test` works on a clone with **no `.env`** (the suite always uses
+  `mongodb-memory-server`, never the dev DB). **SC evidence:** `bun run test` →
+  12 pass / 0 fail / 44 expect() calls; `bunx tsc --noEmit` PASS; client
+  `bun run build` PASS; client `bun run lint` PASS (0/0). **Prod build smoke
+  test:** `bun run build` → `dist/server.js` (1071 modules, exit 0);
+  `NODE_ENV=production PORT=5010 bun ./dist/server.js` → `Server is running on
+  port 5010` + `MongoDB connected successfully` and `GET /api/health` → **200**
+  `{"success":true,"data":{"status":"ok"}}` (process then stopped, artifact
+  removed). **Fresh-clone verification:** _pending_.
 
 - **T3.3 — manage posts:** backend `getAdminPosts` (resolves `status`/q/sort, paginated, author `name,avatar,email` + category populated), `updateAdminPostStatus` (hide/publish), `deleteAdminPost` (destroy Cloudinary image, cascade likes/bookmarks/comments/reports). Client `/admin/posts`: search (title/description), status + sort selects, skeleton/empty/error states, pagination; actions dropdown "Open public page" (target blank), Hide/Publish toggle, Delete via `AlertDialog`. Mutations invalidate `admin` + public `posts` + `my-posts` query keys so a hidden post disappears from the public UI immediately. The `FilterSelect` helper from the Users page was extracted to `client/src/features/admin/components/FilterSelect.tsx` and reused here (no duplication).
 - **T3.3 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0); backend `bunx tsc --noEmit` PASS. curl (verify_ data): `/admin/posts` anon **401**, normal user **403**, admin **200**; `q` and `status=hidden` filters work; PATCH hide → 200 and public `?author=` list drops the post (`total:1→0`), public `/post/:id` → **404**, owner `/post/user` still shows it as `"status":"hidden"`; PATCH publish → public again (`0→1`); invalid `{"status":"draft"}` → **400**; DELETE → 200, second delete → **404**. Live headless chrome (chromedriver + dev server, admin cookie injected): `/admin/posts` rendered the table with the verify post (`verify_user | Uncategorized | Published | 0 | 0`), a scripted click on row actions → "Hide" toasts "Post hidden" and the badge flips to **Hidden**. All `verify_` users + posts were deleted afterwards (0 remaining).
