@@ -5,7 +5,7 @@ there is no workspace tooling or root scripts.
 
 ## Commands (run from each app dir)
 - Backend dev: `cd backend && bun run dev`  # tsx watch server.ts
-- Client dev:  `cd client && bun run dev`   # Vite, port 5173
+- Client dev:  `cd client && bun run dev`   # Vite; 5173, may fall back to 5174+ if taken
 - Client lint: `cd client && bun run lint`
 - Client typecheck+build: `cd client && bun run build`  # tsc -b && vite build
 - Do NOT run scripts from repo root: root `package.json` has no scripts (only stray multer deps).
@@ -13,9 +13,13 @@ there is no workspace tooling or root scripts.
 
 ## Setup / wiring
 - Backend reads `backend/.env` via `dotenv` (`backend/config/env.ts`). Loads with `bun run dev`.
-  Needs `PORT`, `DB_URI`, `JWT_SECRET`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
-- Client dev server proxies `/api` -> `http://localhost:5000` (`client/vite.config.ts`).
-  Backend CORS is hardcoded to `http://localhost:5173`, so the backend must run on 5000 for cookies/auth to work.
+  Needs `PORT`, `DB_URI`, `JWT_SECRET`, `CLIENT_URL`, `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`.
+- Client dev server proxies `/api` -> `http://localhost:5000` (`client/vite.config.ts`); the backend must run on 5000 for cookies/auth to work.
+- CORS (`backend/config/cors.ts`, credentials enabled — never `*`): `CLIENT_URL` is a comma-separated list of
+  exact allowed origins, e.g. `http://localhost:5173,http://localhost:5174`. In development any
+  `http://localhost:<port>` / `http://127.0.0.1:<port>` is also allowed (Vite falls back to 5174+); in
+  production **only** the listed origins are allowed. Preflight handles GET/POST/PUT/PATCH/DELETE with JSON,
+  multipart and Authorization headers.
 - Auth: JWT in httpOnly cookie `token` (also accepts `Authorization: Bearer`). Client also mirrors user to
   localStorage keys `userData` / `expiretionTime` (`client/src/hooks/useUser.tsx`).
 - Client import alias `@` -> `client/src` (shadcn `base-nova` style; add UI via `client/components.json`).

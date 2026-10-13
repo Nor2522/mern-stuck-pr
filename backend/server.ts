@@ -2,7 +2,8 @@ import express from "express"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 import helmet from "helmet"
-import { CLIENT_URL, PORT } from "./config/env.ts"
+import { PORT } from "./config/env.ts"
+import { corsOptions } from "./config/cors.ts"
 import authrouter from "./routes/auth.route.ts"
 import connectDB from "./database/mongodb.ts"
 import postRouter from "./routes/post.route.ts"
@@ -17,13 +18,8 @@ const app = express()
 // Basic security
 app.use(helmet())
 
-// CORS: allow the frontend (CLIENT_URL) to talk to the backend
-app.use(
-  cors({
-    origin: CLIENT_URL,
-    credentials: true,
-  })
-)
+// CORS: allow the frontend origin(s) to talk to the backend (see config/cors.ts)
+app.use(cors(corsOptions))
 
 app.use(cookieParser())
 app.use(express.json())

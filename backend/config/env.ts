@@ -9,7 +9,23 @@ const envSchema = z.object({
   MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
   JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   JWT_EXPIRES_IN: z.string().min(1).default("30d"),
-  CLIENT_URL: z.string().url().default("http://localhost:5173"),
+  // Comma-separated list of allowed browser origins. In development any
+  // http://localhost:<port> / http://127.0.0.1:<port> is also accepted (see
+  // config/cors.ts); in production only these exact origins are allowed.
+  CLIENT_URL: z
+    .string()
+    .default("http://localhost:5173")
+    .transform((value) =>
+      value
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter((origin) => origin.length > 0),
+    )
+    .pipe(
+      z
+        .array(z.string().url())
+        .min(1, "CLIENT_URL must contain at least one valid origin"),
+    ),
   CLOUDINARY_CLOUD_NAME: z
     .string()
     .min(1, "CLOUDINARY_CLOUD_NAME is required"),
@@ -37,7 +53,7 @@ if (!parsed.success) {
 export const {
   PORT,
   JWT_SECRET,
-  CLIENT_URL,
+  CLIENT_URL: CLIENT_ORIGINS,
   CLOUDINARY_CLOUD_NAME,
   CLOUDINARY_API_KEY,
   CLOUDINARY_API_SECRET,
