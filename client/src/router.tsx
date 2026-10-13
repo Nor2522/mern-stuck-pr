@@ -15,6 +15,7 @@ import NotFoundPage from "./pages/NotFoundPage"
 import PostDetailPage from "./pages/PostDetailPage"
 import ProfilePage from "./pages/ProfilePage"
 import RegisterPage from "./pages/RegisterPage"
+import RouteErrorPage from "./pages/RouteErrorPage"
 import SavedPage from "./pages/SavedPage"
 import SettingsPage from "./pages/SettingsPage"
 import { GuestRoute, ProtectedRoute, RoleRoute } from "./features/auth/guards"
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
+    errorElement: <RouteErrorPage />,
     children: [
       { index: true, element: <HomePage /> },
       { path: "explore", element: <ExplorePage /> },
