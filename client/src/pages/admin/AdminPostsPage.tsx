@@ -24,6 +24,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
   useAdminPosts,
   useDeleteAdminPost,
   useUpdatePostStatus,
@@ -128,32 +136,48 @@ const AdminPostsPage = () => {
         />
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border">
-        <table className="w-full min-w-200 border-collapse text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-left text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">Post</th>
-              <th className="px-4 py-2.5 font-medium">Author</th>
-              <th className="px-4 py-2.5 font-medium">Category</th>
-              <th className="px-4 py-2.5 font-medium">Status</th>
-              <th className="px-4 py-2.5 font-medium">Likes</th>
-              <th className="px-4 py-2.5 font-medium">Comments</th>
-              <th className="px-4 py-2.5 font-medium">Date</th>
-              <th className="px-4 py-2.5 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-4 rounded-xl border">
+        <Table className="min-w-200">
+          <TableHeader>
+            <TableRow className="bg-muted/50 text-muted-foreground">
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Post
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Author
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Category
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Likes
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Comments
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Date
+              </TableHead>
+              <TableHead className="px-4 text-right font-medium text-muted-foreground">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {posts.isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <tr key={index} className="border-b last:border-0">
-                  <td colSpan={8} className="px-4 py-3">
+                <TableRow key={index}>
+                  <TableCell colSpan={8} className="px-4 py-3">
                     <Skeleton className="h-8 w-full" />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             ) : posts.isError ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-16 text-center">
+              <TableRow>
+                <TableCell colSpan={8} className="px-4 py-16 text-center">
                   <p className="font-medium">Could not load posts.</p>
                   <Button
                     variant="outline"
@@ -163,17 +187,17 @@ const AdminPostsPage = () => {
                   >
                     Retry
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={8}
                   className="px-4 py-16 text-center text-muted-foreground"
                 >
                   No posts match your filters.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               items.map((row) => {
                 const isBusy =
@@ -181,20 +205,19 @@ const AdminPostsPage = () => {
                   updateStatus.variables?.id === row._id
 
                 return (
-                  <tr
-                    key={row._id}
-                    className="border-b transition-colors last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="max-w-72 px-4 py-3">
-                      <Link
-                        to={`/posts/${row._id}`}
-                        className="block truncate font-medium transition-colors hover:text-primary"
-                        title={row.title}
-                      >
-                        {row.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3">
+                  <TableRow key={row._id} className="hover:bg-muted/40">
+                    <TableCell className="max-w-72 px-4 py-3">
+                      <div className="max-w-72">
+                        <Link
+                          to={`/posts/${row._id}`}
+                          className="block truncate font-medium transition-colors hover:text-primary"
+                          title={row.title}
+                        >
+                          {row.title}
+                        </Link>
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <Avatar size="sm">
                           {row.author?.avatar?.url && (
@@ -211,11 +234,11 @@ const AdminPostsPage = () => {
                           {row.author?.name ?? "Unknown"}
                         </span>
                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {row.category?.name ?? "Uncategorized"}
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Badge
                         variant={
                           row.status === "hidden" ? "secondary" : "outline"
@@ -223,17 +246,17 @@ const AdminPostsPage = () => {
                       >
                         {row.status === "hidden" ? "Hidden" : "Published"}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {row.likesCount}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {row.commentsCount}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {formatDate(row.createdAt)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           render={
@@ -279,13 +302,13 @@ const AdminPostsPage = () => {
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {totalPages > 1 && !posts.isLoading && !posts.isError && (

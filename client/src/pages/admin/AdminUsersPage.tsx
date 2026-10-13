@@ -22,6 +22,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import { useAuth } from "@/features/auth/auth-context"
 import {
   useAdminUsers,
@@ -147,30 +155,42 @@ const AdminUsersPage = () => {
         />
       </div>
 
-      <div className="mt-4 overflow-x-auto rounded-xl border">
-        <table className="w-full min-w-160 border-collapse text-sm">
-          <thead>
-            <tr className="border-b bg-muted/50 text-left text-muted-foreground">
-              <th className="px-4 py-2.5 font-medium">User</th>
-              <th className="px-4 py-2.5 font-medium">Role</th>
-              <th className="px-4 py-2.5 font-medium">Status</th>
-              <th className="px-4 py-2.5 font-medium">Posts</th>
-              <th className="px-4 py-2.5 font-medium">Joined</th>
-              <th className="px-4 py-2.5 text-right font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <div className="mt-4 rounded-xl border">
+        <Table className="min-w-160">
+          <TableHeader>
+            <TableRow className="bg-muted/50 text-muted-foreground">
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                User
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Role
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Posts
+              </TableHead>
+              <TableHead className="px-4 font-medium text-muted-foreground">
+                Joined
+              </TableHead>
+              <TableHead className="px-4 text-right font-medium text-muted-foreground">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {users.isLoading ? (
               Array.from({ length: 6 }).map((_, index) => (
-                <tr key={index} className="border-b last:border-0">
-                  <td colSpan={6} className="px-4 py-3">
+                <TableRow key={index}>
+                  <TableCell colSpan={6} className="px-4 py-3">
                     <Skeleton className="h-8 w-full" />
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             ) : users.isError ? (
-              <tr>
-                <td colSpan={6} className="px-4 py-16 text-center">
+              <TableRow>
+                <TableCell colSpan={6} className="px-4 py-16 text-center">
                   <p className="font-medium">Could not load users.</p>
                   <Button
                     variant="outline"
@@ -180,17 +200,17 @@ const AdminUsersPage = () => {
                   >
                     Retry
                   </Button>
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : items.length === 0 ? (
-              <tr>
-                <td
+              <TableRow>
+                <TableCell
                   colSpan={6}
                   className="px-4 py-16 text-center text-muted-foreground"
                 >
                   No users match your filters.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               items.map((row) => {
                 const isSelf = currentUser?._id === row._id
@@ -200,11 +220,8 @@ const AdminUsersPage = () => {
                   (updateBan.isPending && updateBan.variables?.id === row._id)
 
                 return (
-                  <tr
-                    key={row._id}
-                    className="border-b transition-colors last:border-0 hover:bg-muted/40"
-                  >
-                    <td className="px-4 py-3">
+                  <TableRow key={row._id} className="hover:bg-muted/40">
+                    <TableCell className="px-4 py-3">
                       <div className="flex items-center gap-3">
                         <Avatar size="sm">
                           {row.avatar?.url && (
@@ -229,28 +246,28 @@ const AdminUsersPage = () => {
                           </p>
                         </div>
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Badge
                         variant={row.role === "admin" ? "default" : "secondary"}
                       >
                         {row.role === "admin" ? "Admin" : "User"}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3">
+                    </TableCell>
+                    <TableCell className="px-4 py-3">
                       <Badge
                         variant={row.isBanned ? "destructive" : "outline"}
                       >
                         {row.isBanned ? "Suspended" : "Active"}
                       </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {row.postsCount}
-                    </td>
-                    <td className="px-4 py-3 text-muted-foreground">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-muted-foreground">
                       {formatDate(row.createdAt)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
+                    </TableCell>
+                    <TableCell className="px-4 py-3 text-right">
                       {isSelf ? (
                         <span className="text-xs text-muted-foreground">—</span>
                       ) : (
@@ -302,13 +319,13 @@ const AdminUsersPage = () => {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 )
               })
             )}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </div>
 
       {totalPages > 1 && !users.isLoading && !users.isError && (

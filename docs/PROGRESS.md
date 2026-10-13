@@ -62,6 +62,27 @@ Pre-existing lint findings (baseline, target for T0.2):
 - **T3.3 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0); backend `bunx tsc --noEmit` PASS. curl (verify_ data): `/admin/posts` anon **401**, normal user **403**, admin **200**; `q` and `status=hidden` filters work; PATCH hide → 200 and public `?author=` list drops the post (`total:1→0`), public `/post/:id` → **404**, owner `/post/user` still shows it as `"status":"hidden"`; PATCH publish → public again (`0→1`); invalid `{"status":"draft"}` → **400**; DELETE → 200, second delete → **404**. Live headless chrome (chromedriver + dev server, admin cookie injected): `/admin/posts` rendered the table with the verify post (`verify_user | Uncategorized | Published | 0 | 0`), a scripted click on row actions → "Hide" toasts "Post hidden" and the badge flips to **Hidden**. All `verify_` users + posts were deleted afterwards (0 remaining).
 - **Verification session note (Step 1):** re-verified T3.1/T3.2 before this task — client build+lint PASS (0/0), backend `tsc` PASS, curl: `/admin/stats` + `/admin/users` anon **401** / normal user **403** / admin **200**; safety rules self role/ban/delete → **400**; ban → `/me` **403** `Account suspended`, unban → **200**. All dev-only response bodies include `stack` (the global error middleware only strips it in `NODE_ENV=production`, per T0.3). The `verify_` accounts used were deleted.
 
+- **Post-delete cascade verification (pre-T3.4):** re-checked that deleting a
+  post removes everything attached to it. Created `verify_` author/admin
+  accounts, a post **with a Cloudinary image** (`publicId`
+  `posts/mfqkb6ba6gg3keecu62s`), 1 like, 1 comment, 1 bookmark and 1 report.
+  Before delete: DB counts `posts/likes/comments/bookmarks/reports = 1/1/1/1/1`
+  and the Cloudinary asset was **FOUND**. After admin `DELETE /api/admin/posts/:id`
+  → 200: counts `0/0/0/0/0` and the asset returned **NOT FOUND**
+  (`Resource not found`). `deleteAdminPost` already cascaded correctly, so no
+  code change was needed. All `verify_` users/posts/reports were removed
+  (0 remaining). SC: build/lint/backend-tsc all PASS.
+- **shadcn `Table` adopted in the admin tables:** added
+  `client/src/components/ui/table.tsx` (via `bunx --bun shadcn@latest add
+  table`) and migrated `/admin/users` and `/admin/posts` from hand-rolled
+  `<table>` markup to the `Table`/`TableHeader`/`TableBody`/`TableRow`/
+  `TableHead`/`TableCell` primitives. Behavior and layout are unchanged (same
+  columns, filters, pagination, row actions, dialogs; `min-w-160`/`min-w-200`,
+  header `bg-muted/50`, cell `px-4 py-3`, data-row `hover:bg-muted/40`). SC:
+  client build PASS, lint PASS (0/0), backend `tsc` PASS; live headless chrome:
+  `/admin/users` rendered the 6-column table (10 rows) and `/admin/posts` the
+  8-column table (6 rows). The disposable admin used for the check was deleted
+  (`verify_` remaining: 0).
 - **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
   /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
   impossible. Both now also return `role` (defaulting to `"user"`), `avatar`
