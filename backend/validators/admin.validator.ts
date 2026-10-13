@@ -50,3 +50,11 @@ export const listCommentsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(10),
   q: z.string().trim().max(100).optional(),
 });
+
+export const categoryWriteSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required")
+    .max(50, "Name must be at most 50 characters"),
+});

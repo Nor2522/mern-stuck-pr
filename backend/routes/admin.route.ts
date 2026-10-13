@@ -3,14 +3,18 @@ import authorize from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
 import { validateBody } from "../middlewares/validate.middleware";
 import {
+  createAdminCategory,
+  deleteAdminCategory,
   deleteAdminComment,
   deleteAdminPost,
   deleteAdminUser,
+  getAdminCategories,
   getAdminComments,
   getAdminPosts,
   getAdminReports,
   getAdminStats,
   getAdminUsers,
+  updateAdminCategory,
   updateAdminPostStatus,
   updateAdminReport,
   updateAdminUserBan,
@@ -18,6 +22,7 @@ import {
 } from "../controllers/admin.controller";
 import {
   banUpdateSchema,
+  categoryWriteSchema,
   reportUpdateSchema,
   roleUpdateSchema,
   statusUpdateSchema,
@@ -60,5 +65,18 @@ adminRouter.patch(
 
 adminRouter.get("/comments", asyncHandler(getAdminComments));
 adminRouter.delete("/comments/:id", asyncHandler(deleteAdminComment));
+
+adminRouter.get("/categories", asyncHandler(getAdminCategories));
+adminRouter.post(
+  "/categories",
+  validateBody(categoryWriteSchema),
+  asyncHandler(createAdminCategory),
+);
+adminRouter.patch(
+  "/categories/:id",
+  validateBody(categoryWriteSchema),
+  asyncHandler(updateAdminCategory),
+);
+adminRouter.delete("/categories/:id", asyncHandler(deleteAdminCategory));
 
 export default adminRouter;

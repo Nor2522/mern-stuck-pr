@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router"
 import App from "./App"
 import AdminPage from "./pages/AdminPage"
+import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage"
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage"
 import AdminDashboard from "./pages/admin/AdminDashboard"
-import AdminPlaceholder from "./pages/admin/AdminPlaceholder"
 import AdminPostsPage from "./pages/admin/AdminPostsPage"
 import AdminReportsPage from "./pages/admin/AdminReportsPage"
 import AdminUsersPage from "./pages/admin/AdminUsersPage"
@@ -95,7 +95,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "categories",
-            element: <AdminPlaceholder title="Categories" task="T3.5" />,
+            element: <AdminCategoriesPage />,
           },
         ],
       },

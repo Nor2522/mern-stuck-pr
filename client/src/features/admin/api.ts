@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { getErrorMessage } from "@/lib/error"
+import { categoriesKeys } from "@/features/categories/api"
 import { commentsKeys } from "@/features/comments/api"
 import { myPostsKeys, postsKeys } from "@/features/posts/api"
 import type { ApiMessage, ApiSuccess } from "@/types/api"
@@ -18,6 +19,7 @@ import type {
   AdminUsersResponse,
   ReportStatus,
 } from "@/types/admin"
+import type { AdminCategory } from "@/types/category"
 import type { PostStatus, PostsResponse } from "@/types/post"
 import type { UserRole } from "@/types/user"
 
@@ -30,6 +32,7 @@ export const adminKeys = {
     ["admin", "reports", params] as const,
   comments: (params: AdminCommentsParams) =>
     ["admin", "comments", params] as const,
+  categories: ["admin", "categories"] as const,
 }
 
 export type AdminUsersParams = {
@@ -264,6 +267,82 @@ export const useDeleteAdminComment = () => {
       queryClient.invalidateQueries({ queryKey: adminKeys.all })
       queryClient.invalidateQueries({ queryKey: commentsKeys.all })
       queryClient.invalidateQueries({ queryKey: postsKeys.all })
+      toast.success(data.message)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useAdminCategories = () =>
+  useQuery({
+    queryKey: adminKeys.categories,
+    queryFn: async (): Promise<AdminCategory[]> => {
+      const { data } = await api.get<ApiSuccess<{ categories: AdminCategory[] }>>(
+        "/admin/categories",
+      )
+      return data.data.categories
+    },
+  })
+
+const invalidateCategories = (
+  queryClient: ReturnType<typeof useQueryClient>,
+) => {
+  queryClient.invalidateQueries({ queryKey: adminKeys.all })
+  queryClient.invalidateQueries({ queryKey: categoriesKeys.all })
+}
+
+export const useCreateCategory = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (name: string) => {
+      const { data } = await api.post<ApiMessage>("/admin/categories", { name })
+      return data
+    },
+    onSuccess: () => {
+      invalidateCategories(queryClient)
+      toast.success("Category created")
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useRenameCategory = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, name }: { id: string; name: string }) => {
+      const { data } = await api.patch<ApiMessage>(`/admin/categories/${id}`, {
+        name,
+      })
+      return data
+    },
+    onSuccess: (data: ApiMessage) => {
+      invalidateCategories(queryClient)
+      toast.success(data.message)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useDeleteCategory = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({
+      id,
+      reassignTo,
+    }: {
+      id: string
+      reassignTo?: string
+    }) => {
+      const { data } = await api.delete<ApiMessage>(`/admin/categories/${id}`, {
+        params: reassignTo ? { reassignTo } : undefined,
+      })
+      return data
+    },
+    onSuccess: (data: ApiMessage) => {
+      invalidateCategories(queryClient)
       toast.success(data.message)
     },
     onError: (error) => toast.error(getErrorMessage(error)),

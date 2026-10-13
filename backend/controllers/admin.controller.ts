@@ -6,10 +6,13 @@ import Comment from "../models/comment.model";
 import Like from "../models/like.model";
 import Bookmark from "../models/bookmark.model";
 import Report from "../models/report.model";
+import Category from "../models/category.model";
 import cloudinary from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
+import { slugify } from "../utils/slugify";
 import {
   banUpdateSchema,
+  categoryWriteSchema,
   listCommentsQuerySchema,
   listPostsQuerySchema,
   listReportsQuerySchema,
@@ -465,4 +468,130 @@ export const deleteAdminComment = async (req: Request, res: Response) => {
   );
 
   return res.status(200).json({ success: true, message: "Comment deleted" });
+};
+
+// A name is unique case-insensitively; a slug is derived from the name.
+const findCategoryClash = (name: string, slug: string, excludeId?: string) => {
+  const filter: QueryFilter<unknown> = {
+    $or: [{ name: new RegExp(`^${escapeRegExp(name)}$`, "i") }, { slug }],
+  };
+  if (excludeId) filter._id = { $ne: excludeId };
+  return Category.findOne(filter);
+};
+
+// GET /api/admin/categories -> categories with their post counts
+export const getAdminCategories = async (_req: Request, res: Response) => {
+  const [categories, counts] = await Promise.all([
+    Category.find().sort({ name: 1 }),
+    Post.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
+      { $match: { category: { $ne: null } } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const countByCategory = new Map(
+    counts.map((row) => [row._id.toString(), row.count]),
+  );
+
+  const data = categories.map((category) => ({
+    _id: category._id,
+    name: category.name,
+    slug: category.slug,
+    createdAt: category.createdAt,
+    postsCount: countByCategory.get(category._id.toString()) ?? 0,
+  }));
+
+  return res.status(200).json({ success: true, data: { categories: data } });
+};
+
+// POST /api/admin/categories -> create a category (auto slug)
+export const createAdminCategory = async (req: Request, res: Response) => {
+  const parsed = categoryWriteSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
+  }
+  const { name } = parsed.data;
+  const slug = slugify(name);
+
+  const clash = await findCategoryClash(name, slug);
+  if (clash) {
+    throw new HttpError(409, "A category with this name already exists");
+  }
+
+  const category = await Category.create({ name, slug });
+
+  return res.status(201).json({
+    success: true,
+    data: {
+      category: {
+        _id: category._id,
+        name: category.name,
+        slug: category.slug,
+        createdAt: category.createdAt,
+        postsCount: 0,
+      },
+    },
+  });
+};
+
+// PATCH /api/admin/categories/:id -> rename a category (re-slug)
+export const updateAdminCategory = async (req: Request, res: Response) => {
+  const id = assertValidId(req.params.id, "category");
+  const parsed = categoryWriteSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
+  }
+  const { name } = parsed.data;
+  const slug = slugify(name);
+
+  const category = await Category.findById(id);
+  if (!category) throw new HttpError(404, "Category not found");
+
+  const clash = await findCategoryClash(name, slug, id);
+  if (clash) {
+    throw new HttpError(409, "A category with this name already exists");
+  }
+
+  category.name = name;
+  category.slug = slug;
+  await category.save();
+
+  return res.status(200).json({ success: true, message: "Category updated" });
+};
+
+// DELETE /api/admin/categories/:id -> delete, or block/reassign if it has posts
+export const deleteAdminCategory = async (req: Request, res: Response) => {
+  const id = assertValidId(req.params.id, "category");
+  const category = await Category.findById(id);
+  if (!category) throw new HttpError(404, "Category not found");
+
+  const postsCount = await Post.countDocuments({ category: category._id });
+  const reassignTo =
+    typeof req.query.reassignTo === "string" && req.query.reassignTo !== ""
+      ? req.query.reassignTo
+      : undefined;
+
+  if (postsCount > 0) {
+    if (!reassignTo) {
+      const noun = postsCount === 1 ? "post" : "posts";
+      throw new HttpError(
+        409,
+        `This category has ${postsCount} ${noun}. Reassign them to another category first.`,
+      );
+    }
+    if (!mongoose.isValidObjectId(reassignTo) || reassignTo === id) {
+      throw new HttpError(400, "Choose a different category to reassign posts to");
+    }
+    const target = await Category.findById(reassignTo);
+    if (!target) throw new HttpError(404, "Target category not found");
+
+    await Post.updateMany(
+      { category: category._id },
+      { $set: { category: target._id } },
+    );
+  }
+
+  await category.deleteOne();
+
+  return res.status(200).json({ success: true, message: "Category deleted" });
 };

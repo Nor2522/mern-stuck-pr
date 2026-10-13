@@ -50,7 +50,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.2 | Manage users | DONE | _(see git log)_ | `/api/admin/users` (search name/email, role/status filters, pagination, newest/oldest sort, per-user posts count) + `PATCH .../role`, `PATCH .../ban`, `DELETE .../:id`; safety rules on backend (no self role/ban/delete, last-admin protected); hard delete cascades the user's posts (Cloudinary destroy), likes, comments, bookmarks, reports, plus avatar; `/admin/users` table with filters + row actions (`DropdownMenu`) + delete `AlertDialog` |
 | T3.3 | Manage posts | DONE | _(see git log)_ | `/api/admin/posts` (all posts incl. hidden, `q`/`status` filters, newest/oldest/popular sort, pagination) + `PATCH /admin/posts/:id/status` + `DELETE /admin/posts/:id` (Cloudinary destroy + like/bookmark/comment/report cascade); `/admin/posts` table with search/filters/sort, status badge, row actions (open public page, hide/publish, delete `AlertDialog`); shared `FilterSelect` extracted (users + posts pages) |
 | T3.4 | Moderation: comments and reports | DONE | _(see git log)_ | `/api/admin/reports` (status filter open/resolved/dismissed, paginated, post+reporter+resolvedBy populated) + `PATCH /admin/reports/:id` (resolve/dismiss, records `resolvedBy`/`resolvedAt`); `/api/admin/comments` (search + pagination, author+post populated) + `DELETE /admin/comments/:id` (decrements `commentsCount`); `/admin/reports` tabbed table (segmented Open/Resolved/Dismissed, row actions resolve/dismiss/hide post/open/delete post) and `/admin/comments` table (search + delete) replace their placeholders |
-| T3.5 | Manage categories | TODO | — | — |
+| T3.5 | Manage categories | DONE | _(this commit)_ | Backend: `GET/POST /api/admin/categories`, `PATCH/DELETE /api/admin/categories/:id` (auto-slug, friendly 409 on duplicate name/slug, per-category `postsCount`, delete blocked with 409 while posts remain, `?reassignTo=<id>` moves posts then deletes). Client: `/admin/categories` table + create/rename `Dialog` (RHF + zod) + delete `AlertDialog` with reassign `FilterSelect`; invalidates admin + public `categories` keys. New `backend/utils/slugify.ts`. |
 | T4.1 | Security hardening review | TODO | — | — |
 | T4.2 | Tests | TODO | — | — |
 | T4.3 | UX polish pass | TODO | — | — |
@@ -121,6 +121,42 @@ Pre-existing lint findings (baseline, target for T0.2):
 - **T3.4 — a real open report and a real comment were left untouched:** the
   dev DB already contained a report on "NEWEST POST 1791805431" (by `nor252`) and
   a comment "this is aswome"; only the `verify_` rows were acted on.
+- **Quick fix (separate commit `a82233b`) — reports tabs:** `/admin/reports`'s
+  hand-rolled segmented control was replaced with the shadcn `Tabs` component
+  (`bunx --bun shadcn@latest add tabs`). `tabsListVariants` was moved to
+  `client/src/components/ui/tabs-variants.ts` to satisfy
+  `react-refresh/only-export-components` (mirrors `button-variants.ts`).
+  Behavior unchanged (`onValueChange` sets status + resets page).
+- **T3.5 — manage categories:** backend `GET /api/admin/categories` (returns each
+  category with an aggregated `postsCount`), `POST` (auto-slug via new
+  `backend/utils/slugify.ts`, `categoryWriteSchema` name 1–50),
+  `PATCH /:id` (rename + re-slug) and `DELETE /:id`. Duplicate name/slug →
+  **409** `A category with this name already exists`; deleting a category that
+  still has posts → **409** `This category has N posts. Reassign them to another
+  category first.`; `?reassignTo=<id>` moves the posts (own category / unknown
+  id → **400**) then deletes. Client `/admin/categories` (wired in `router.tsx`
+  over the old placeholder): `Table`, create/rename `Dialog` (react-hook-form +
+  zod `categoryFormSchema`), delete `AlertDialog` with a reassign `FilterSelect`,
+  plus loading/empty/error states. New `AdminCategory` type; hooks
+  `useAdminCategories`/`useCreateCategory`/`useRenameCategory`/`useDeleteCategory`
+  invalidate `admin` + the public `categoriesKeys.all` so `/explore` and the home
+  chips refresh immediately.
+- **T3.5 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. curl (verify_ admin + user): `GET
+  /api/admin/categories` anon **401**, normal user **403**, admin **200**;
+  create → **201** with slug `verify-t35-alpha-<ts>`; duplicate (case-insensitive)
+  → **409**; rename → **200** and public `GET /api/categories` shows the new
+  name/slug immediately; duplicate rename → **409**; a post assigned to category
+  A made `postsCount` **1** and `DELETE A` → **409** (message above); reassign to
+  self → **400**; `DELETE A?reassignTo=B` → **200** and the post's category is now
+  **B** (`postsCount` **1**); after deleting the posts, `DELETE B` → **200**
+  (admin list back to **6**).
+- **T3.5 — post-delete cascade re-confirmed clean:** on the test post (liked,
+  bookmarked, commented and reported) deleting it removed every child — DB counts
+  `likes/bookmarks/comments/reports = 1/1/1/1` before → `0/0/0/0` after. The post
+  had no Cloudinary image, so there was no asset to destroy. All `verify_`
+  users/posts/categories were deleted afterwards (0 remaining; categories total
+  **6**).
 - **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
   /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
   impossible. Both now also return `role` (defaulting to `"user"`), `avatar`
