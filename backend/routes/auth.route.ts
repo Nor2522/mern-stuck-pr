@@ -8,6 +8,7 @@ import {
 import {
   loginLimiter,
   signUpLimiter,
+  writeLimiter,
 } from "../middlewares/rateLimit.middleware.ts";
 import authorize from "../middlewares/auth.middleware.ts";
 import upload from "../middlewares/uploade.middleware.ts";
@@ -31,6 +32,7 @@ authrouter.get("/me", authorize, asyncHandler(getMe));
 authrouter.put(
   "/me",
   authorize,
+  writeLimiter,
   upload.single("avatar"),
   validateBody(updateProfileSchema),
   asyncHandler(updateMe),
@@ -38,6 +40,7 @@ authrouter.put(
 authrouter.put(
   "/me/password",
   authorize,
+  writeLimiter,
   validateBody(changePasswordSchema),
   asyncHandler(changePassword),
 );

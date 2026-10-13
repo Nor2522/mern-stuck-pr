@@ -10,17 +10,16 @@ import cloudinary, { uploadToCloudinary } from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
 import {
   createPostSchema,
+  listPostsQuerySchema,
   updatePostSchema,
 } from "../validators/post.validator";
+import { paginationQuerySchema } from "../validators/query.validator";
 
 // Populate author and category
 const populate = [
   { path: "author", select: "name avatar" },
   { path: "category", select: "name slug" },
 ];
-
-const DEFAULT_LIMIT = 9;
-const MAX_LIMIT = 50;
 
 // Adds likedByMe/bookmarkedByMe when a user is logged in.
 // Works with both documents and plain objects.
@@ -58,17 +57,6 @@ const withReactions = async (
   }));
 };
 
-const parsePagination = (query: Request["query"]) => {
-  const parsedPage = Number.parseInt(String(query.page ?? "1"), 10);
-  const parsedLimit = Number.parseInt(String(query.limit ?? DEFAULT_LIMIT), 10);
-  const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, Number.isNaN(parsedLimit) ? DEFAULT_LIMIT : parsedLimit),
-  );
-  return { page, limit };
-};
-
 // category can be an ObjectId or slug -> ObjectId | null
 const findCategoryId = async (value: string): Promise<string | null> => {
   if (mongoose.isValidObjectId(value)) return value;
@@ -93,14 +81,15 @@ const paginated = (
 
 // Public list of posts: pagination, search, filter, sort
 export const getPosts = async (req: Request, res: Response) => {
-  const { page, limit } = parsePagination(req.query);
+  const parsed = listPostsQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit, q, category, author, sort: sortParam } = parsed.data;
   const filter: QueryFilter<PostType> = { status: "published" };
 
-  const q = typeof req.query.q === "string" ? req.query.q.trim() : "";
   if (q) filter.$text = { $search: q };
 
-  const category =
-    typeof req.query.category === "string" ? req.query.category.trim() : "";
   if (category) {
     const categoryId = await findCategoryId(category);
     if (!categoryId) {
@@ -109,7 +98,6 @@ export const getPosts = async (req: Request, res: Response) => {
     filter.category = new mongoose.Types.ObjectId(categoryId);
   }
 
-  const author = typeof req.query.author === "string" ? req.query.author : "";
   if (author) {
     if (!mongoose.isValidObjectId(author)) {
       throw new HttpError(400, "Invalid author");
@@ -118,7 +106,7 @@ export const getPosts = async (req: Request, res: Response) => {
   }
 
   const sort: Record<string, -1 | 1> =
-    req.query.sort === "popular"
+    sortParam === "popular"
       ? { likesCount: -1, createdAt: -1 }
       : { createdAt: -1 };
 
@@ -159,7 +147,11 @@ export const getUserPosts = async (req: Request, res: Response) => {
     throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
-  const { page, limit } = parsePagination(req.query);
+  const parsed = paginationQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit } = parsed.data;
   const filter: QueryFilter<PostType> = { author: currentUser._id };
 
   const [posts, total] = await Promise.all([

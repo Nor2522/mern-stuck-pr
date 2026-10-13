@@ -3,9 +3,7 @@ import mongoose from "mongoose";
 import Bookmark from "../models/bookmark.model";
 import Post from "../models/post.model";
 import { HttpError } from "../middlewares/error.middleware";
-
-const DEFAULT_LIMIT = 9;
-const MAX_LIMIT = 50;
+import { paginationQuerySchema } from "../validators/query.validator";
 
 const populate = [
   { path: "author", select: "name avatar" },
@@ -61,13 +59,11 @@ export const getBookmarks = async (req: Request, res: Response) => {
     throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
-  const parsedPage = Number.parseInt(String(req.query.page ?? "1"), 10);
-  const parsedLimit = Number.parseInt(String(req.query.limit ?? DEFAULT_LIMIT), 10);
-  const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, Number.isNaN(parsedLimit) ? DEFAULT_LIMIT : parsedLimit),
-  );
+  const parsed = paginationQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit } = parsed.data;
 
   const bookmarks = await Bookmark.find({ user: currentUser._id })
     .sort({ createdAt: -1 })

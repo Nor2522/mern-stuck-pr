@@ -18,7 +18,9 @@ import { reportPost } from "../controllers/report.controller";
 import authorize from "../middlewares/auth.middleware";
 import optionalAuth from "../middlewares/optionalAuth.middleware";
 import upload from "../middlewares/uploade.middleware.ts";
+import { writeLimiter } from "../middlewares/rateLimit.middleware.ts";
 import { validateBody } from "../middlewares/validate.middleware.ts";
+import { addCommentSchema } from "../validators/comment.validator.ts";
 import { reportSchema } from "../validators/report.validator.ts";
 import { asyncHandler } from "../utils/asyncHandler.ts";
 
@@ -32,19 +34,38 @@ postRouter.get("/user/stats", authorize, asyncHandler(getUserStats));
 postRouter.get("/:id", optionalAuth, asyncHandler(getPostById));
 
 // Like / bookmark / comments for the post
-postRouter.post("/:id/like", authorize, asyncHandler(toggleLike));
-postRouter.post("/:id/bookmark", authorize, asyncHandler(toggleBookmark));
+postRouter.post("/:id/like", authorize, writeLimiter, asyncHandler(toggleLike));
+postRouter.post("/:id/bookmark", authorize, writeLimiter, asyncHandler(toggleBookmark));
 postRouter.get("/:id/comments", asyncHandler(getComments));
-postRouter.post("/:id/comments", authorize, asyncHandler(addComment));
+postRouter.post(
+  "/:id/comments",
+  authorize,
+  writeLimiter,
+  validateBody(addCommentSchema),
+  asyncHandler(addComment),
+);
 postRouter.post(
   "/:id/report",
   authorize,
+  writeLimiter,
   validateBody(reportSchema),
   asyncHandler(reportPost),
 );
 
-postRouter.post("/", authorize, upload.single("image"), asyncHandler(createPost));
-postRouter.put("/:id", authorize, upload.single("image"), asyncHandler(updatePost));
-postRouter.delete("/:id", authorize, asyncHandler(deletePost));
+postRouter.post(
+  "/",
+  authorize,
+  writeLimiter,
+  upload.single("image"),
+  asyncHandler(createPost),
+);
+postRouter.put(
+  "/:id",
+  authorize,
+  writeLimiter,
+  upload.single("image"),
+  asyncHandler(updatePost),
+);
+postRouter.delete("/:id", authorize, writeLimiter, asyncHandler(deletePost));
 
 export default postRouter;

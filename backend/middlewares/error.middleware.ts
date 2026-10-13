@@ -1,4 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
+import multer from "multer";
 
 export class HttpError extends Error {
   status: number;
@@ -24,11 +25,20 @@ export const errorHandler = (
   _next: NextFunction,
 ) => {
   const isProduction = process.env.NODE_ENV === "production";
-  const status = err instanceof HttpError ? err.status : 500;
+  const isMulterError = err instanceof multer.MulterError;
+  const status =
+    err instanceof HttpError ? err.status : isMulterError ? 400 : 500;
+
+  const multerMessage =
+    err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE"
+      ? "Image is too large (max 5MB)"
+      : undefined;
+
   const message =
-    err instanceof Error && (!isProduction || status < 500)
+    multerMessage ??
+    (err instanceof Error && (!isProduction || status < 500)
       ? err.message
-      : "Internal server error";
+      : "Internal server error");
 
   const body: { success: false; message: string; stack?: string } = {
     success: false,

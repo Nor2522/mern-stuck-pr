@@ -48,5 +48,16 @@ export const createPostSchema = z.object({
 
 export const updatePostSchema = createPostSchema.partial();
 
+// Public post list query (page/limit validated, not coerced in the controller)
+export const listPostsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(50).default(9),
+  q: z.string().trim().max(200).optional(),
+  category: z.string().trim().max(100).optional(),
+  author: z.string().trim().optional(),
+  sort: z.enum(["latest", "popular"]).default("latest"),
+});
+
 export type CreatePostInput = z.infer<typeof createPostSchema>;
 export type UpdatePostInput = z.infer<typeof updatePostSchema>;
+export type ListPostsQuery = z.infer<typeof listPostsQuerySchema>;

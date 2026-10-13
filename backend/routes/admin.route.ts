@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authorize from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
+import { writeLimiter } from "../middlewares/rateLimit.middleware";
 import { validateBody } from "../middlewares/validate.middleware";
 import {
   createAdminCategory,
@@ -38,45 +39,51 @@ adminRouter.get("/stats", asyncHandler(getAdminStats));
 adminRouter.get("/users", asyncHandler(getAdminUsers));
 adminRouter.patch(
   "/users/:id/role",
+  writeLimiter,
   validateBody(roleUpdateSchema),
   asyncHandler(updateAdminUserRole),
 );
 adminRouter.patch(
   "/users/:id/ban",
+  writeLimiter,
   validateBody(banUpdateSchema),
   asyncHandler(updateAdminUserBan),
 );
-adminRouter.delete("/users/:id", asyncHandler(deleteAdminUser));
+adminRouter.delete("/users/:id", writeLimiter, asyncHandler(deleteAdminUser));
 
 adminRouter.get("/posts", asyncHandler(getAdminPosts));
 adminRouter.patch(
   "/posts/:id/status",
+  writeLimiter,
   validateBody(statusUpdateSchema),
   asyncHandler(updateAdminPostStatus),
 );
-adminRouter.delete("/posts/:id", asyncHandler(deleteAdminPost));
+adminRouter.delete("/posts/:id", writeLimiter, asyncHandler(deleteAdminPost));
 
 adminRouter.get("/reports", asyncHandler(getAdminReports));
 adminRouter.patch(
   "/reports/:id",
+  writeLimiter,
   validateBody(reportUpdateSchema),
   asyncHandler(updateAdminReport),
 );
 
 adminRouter.get("/comments", asyncHandler(getAdminComments));
-adminRouter.delete("/comments/:id", asyncHandler(deleteAdminComment));
+adminRouter.delete("/comments/:id", writeLimiter, asyncHandler(deleteAdminComment));
 
 adminRouter.get("/categories", asyncHandler(getAdminCategories));
 adminRouter.post(
   "/categories",
+  writeLimiter,
   validateBody(categoryWriteSchema),
   asyncHandler(createAdminCategory),
 );
 adminRouter.patch(
   "/categories/:id",
+  writeLimiter,
   validateBody(categoryWriteSchema),
   asyncHandler(updateAdminCategory),
 );
-adminRouter.delete("/categories/:id", asyncHandler(deleteAdminCategory));
+adminRouter.delete("/categories/:id", writeLimiter, asyncHandler(deleteAdminCategory));
 
 export default adminRouter;

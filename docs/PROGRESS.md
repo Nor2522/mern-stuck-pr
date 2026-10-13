@@ -51,7 +51,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.3 | Manage posts | DONE | _(see git log)_ | `/api/admin/posts` (all posts incl. hidden, `q`/`status` filters, newest/oldest/popular sort, pagination) + `PATCH /admin/posts/:id/status` + `DELETE /admin/posts/:id` (Cloudinary destroy + like/bookmark/comment/report cascade); `/admin/posts` table with search/filters/sort, status badge, row actions (open public page, hide/publish, delete `AlertDialog`); shared `FilterSelect` extracted (users + posts pages) |
 | T3.4 | Moderation: comments and reports | DONE | _(see git log)_ | `/api/admin/reports` (status filter open/resolved/dismissed, paginated, post+reporter+resolvedBy populated) + `PATCH /admin/reports/:id` (resolve/dismiss, records `resolvedBy`/`resolvedAt`); `/api/admin/comments` (search + pagination, author+post populated) + `DELETE /admin/comments/:id` (decrements `commentsCount`); `/admin/reports` tabbed table (segmented Open/Resolved/Dismissed, row actions resolve/dismiss/hide post/open/delete post) and `/admin/comments` table (search + delete) replace their placeholders |
 | T3.5 | Manage categories | DONE | _(this commit)_ | Backend: `GET/POST /api/admin/categories`, `PATCH/DELETE /api/admin/categories/:id` (auto-slug, friendly 409 on duplicate name/slug, per-category `postsCount`, delete blocked with 409 while posts remain, `?reassignTo=<id>` moves posts then deletes). Client: `/admin/categories` table + create/rename `Dialog` (RHF + zod) + delete `AlertDialog` with reassign `FilterSelect`; invalidates admin + public `categories` keys. New `backend/utils/slugify.ts`. |
-| T4.1 | Security hardening review | TODO | — | — |
+| T4.1 | Security hardening review | DONE | _(this commit)_ | Audited every route (auth/role/ownership + zod inputs); added `writeLimiter` (120/15min) to all write endpoints, zod for the comment body + public list queries, upload allowlist (`files:1`, JPEG/PNG/WebP/GIF) and `MulterError`→400; cookie flags/helmet/logs confirmed; no secrets in branch history |
 | T4.2 | Tests | TODO | — | — |
 | T4.3 | UX polish pass | TODO | — | — |
 | T4.4 | Docs and release prep | TODO | — | — |
@@ -157,6 +157,43 @@ Pre-existing lint findings (baseline, target for T0.2):
   had no Cloudinary image, so there was no asset to destroy. All `verify_`
   users/posts/categories were deleted afterwards (0 remaining; categories total
   **6**).
+- **T4.1 — security hardening review (audit + fixes):** every route was
+  reviewed for auth / role / ownership and every input for zod validation. Route
+  coverage: public `POST /user/sign-up|login` (`registerSchema`/`loginSchema` +
+  auth limiters), `GET /post`, `GET /post/:id`, `GET /post/:id/comments`,
+  `GET /user/:id`, `GET /categories`, `GET /health`; authenticated user routes
+  (`authorize`) for `/user/me` (+`/password`), `/post/user` (+`/stats`),
+  `POST|PUT|DELETE /post(/:id)`, `/post/:id/like|bookmark|comments|report`,
+  `DELETE /comment/:id`, `GET /bookmarks`; all `/api/admin/*` behind
+  `authorize` + `requireRole("admin")` (already applied router-wide). Ownership
+  is enforced on post update/delete and comment delete (owner or admin → 403);
+  admin self-action and last-admin guards are in place.
+  **Fixes applied:** (1) new `writeLimiter` (120 req / 15 min) on every
+  state-changing endpoint — posts, comments, likes, bookmarks, reports, profile
+  edits and all admin writes — complementing the existing login/sign-up limits;
+  (2) zod input coverage closed: new `addCommentSchema` (`validateBody` on
+  `POST /post/:id/comments`), new `listPostsQuerySchema` for `GET /post` and new
+  shared `paginationQuerySchema` for `GET /post/user`, `GET /post/:id/comments`
+  and `GET /bookmarks` (previously hand-parsed), replacing the manual clamping
+  in `post`/`comment`/`bookmark` controllers; (3) upload hardening in
+  `uploade.middleware.ts` — explicit JPEG/PNG/WebP/GIF allowlist (was the
+  client-controlled `image/*` wildcard), `files: 1` cap and a 400 `HttpError`
+  rejection; (4) `error.middleware.ts` maps `MulterError` → **400** (with a
+  friendly `Image is too large (max 5MB)` for `LIMIT_FILE_SIZE`), so oversized
+  files no longer surface as 500. **Confirmed already adequate:** cookie flags
+  (`httpOnly`, `secure` in production, `sameSite=lax`, `maxAge` from
+  `EXPIRE_IN`), `helmet()` defaults on the server, no `console.log`/PII in
+  application code (only bootstrap/db/scripts), and no secrets in the branch
+  history (`.env` git-ignored; only `.env.example` tracked; the sole
+  secret-shaped hit is the `CLOUDINARY_API_SECRET` variable reference). Path
+  params are validated with `mongoose.isValidObjectId` → 404 rather than zod.
+  **SC evidence:** `backend bunx tsc --noEmit` PASS, `client bun run build`
+  PASS, `client bun run lint` PASS (0/0). Runtime (live `tsx watch` on :5000):
+  `GET /post?limit=999` → **400**, `?sort=zzz` → **400**, valid → **200**;
+  comment body `{"text":"   "}` → **400** with `errors:[{field:"text",...}]`;
+  non-image upload → **400** `Only JPEG, PNG, WebP or GIF images are allowed`;
+  6 MB image → **400** `Image is too large (max 5MB)`. Throwaway `verify_t41_`
+  user deleted afterwards (0 remaining).
 - **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
   /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
   impossible. Both now also return `role` (defaulting to `"user"`), `avatar`

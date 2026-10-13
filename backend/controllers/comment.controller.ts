@@ -3,9 +3,7 @@ import mongoose from "mongoose";
 import Comment from "../models/comment.model";
 import Post from "../models/post.model";
 import { HttpError } from "../middlewares/error.middleware";
-
-const DEFAULT_LIMIT = 10;
-const MAX_LIMIT = 50;
+import { paginationQuerySchema } from "../validators/query.validator";
 
 // GET /api/post/:id/comments -> list (public, paginated)
 export const getComments = async (req: Request, res: Response) => {
@@ -14,13 +12,11 @@ export const getComments = async (req: Request, res: Response) => {
     throw new HttpError(404, "Post not found");
   }
 
-  const parsedPage = Number.parseInt(String(req.query.page ?? "1"), 10);
-  const parsedLimit = Number.parseInt(String(req.query.limit ?? DEFAULT_LIMIT), 10);
-  const page = Number.isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, Number.isNaN(parsedLimit) ? DEFAULT_LIMIT : parsedLimit),
-  );
+  const parsed = paginationQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit } = parsed.data;
 
   const filter = { post: id };
   const [comments, total] = await Promise.all([
@@ -53,13 +49,8 @@ export const addComment = async (req: Request, res: Response) => {
     throw new HttpError(404, "Post not found");
   }
 
-  const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
-  if (text.length < 1) {
-    throw new HttpError(400, "Comment cannot be empty");
-  }
-  if (text.length > 500) {
-    throw new HttpError(400, "Comment must be at most 500 characters");
-  }
+  // Sanitized by addCommentSchema (validateBody) before this runs
+  const { text } = req.body as { text: string };
 
   const post = await Post.findOne({ _id: id, status: "published" }).select(
     "_id",
