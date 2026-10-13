@@ -1,9 +1,11 @@
 import { createBrowserRouter } from "react-router"
 import App from "./App"
 import AdminPage from "./pages/AdminPage"
+import AdminCommentsPage from "./pages/admin/AdminCommentsPage"
 import AdminDashboard from "./pages/admin/AdminDashboard"
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder"
 import AdminPostsPage from "./pages/admin/AdminPostsPage"
+import AdminReportsPage from "./pages/admin/AdminReportsPage"
 import AdminUsersPage from "./pages/admin/AdminUsersPage"
 import DashBoard from "./pages/DashBoard"
 import ExplorePage from "./pages/ExplorePage"
@@ -85,11 +87,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "comments",
-            element: <AdminPlaceholder title="Comments" task="T3.4" />,
+            element: <AdminCommentsPage />,
           },
           {
             path: "reports",
-            element: <AdminPlaceholder title="Reports" task="T3.4" />,
+            element: <AdminReportsPage />,
           },
           {
             path: "categories",

@@ -56,3 +56,55 @@ export interface AdminUsersResponse {
   users: AdminUser[]
   pagination: Pagination
 }
+
+export type ReportReason =
+  | "spam"
+  | "harassment"
+  | "misleading"
+  | "inappropriate"
+  | "other"
+
+export type ReportStatus = "open" | "resolved" | "dismissed"
+
+export interface ReportPostRef {
+  _id: string
+  title: string
+  status: PostStatus
+}
+
+export interface ReportUserRef {
+  _id: string
+  name: string
+  email?: string
+  avatar?: UserAvatar
+}
+
+export interface AdminReport {
+  _id: string
+  post?: ReportPostRef | null
+  reporter?: ReportUserRef | null
+  reason: ReportReason
+  details: string
+  status: ReportStatus
+  resolvedBy?: { _id: string; name: string } | null
+  resolvedAt?: string | null
+  createdAt: string
+}
+
+export interface AdminReportsResponse {
+  reports: AdminReport[]
+  pagination: Pagination
+}
+
+export interface AdminComment {
+  _id: string
+  text: string
+  post?: ReportPostRef | null
+  author?: ReportUserRef | null
+  createdAt: string
+}
+
+export interface AdminCommentsResponse {
+  comments: AdminComment[]
+  pagination: Pagination
+}

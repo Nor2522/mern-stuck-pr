@@ -32,3 +32,21 @@ export const listPostsQuerySchema = z.object({
   status: z.enum(["published", "hidden"]).optional(),
   sort: z.enum(["newest", "oldest", "popular"]).default("newest"),
 });
+
+export const reportUpdateSchema = z.object({
+  status: z.enum(["resolved", "dismissed"], {
+    message: "Status must be 'resolved' or 'dismissed'",
+  }),
+});
+
+export const listReportsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  status: z.enum(["open", "resolved", "dismissed"]).optional(),
+});
+
+export const listCommentsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  q: z.string().trim().max(100).optional(),
+});

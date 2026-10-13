@@ -10,8 +10,11 @@ import cloudinary from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
 import {
   banUpdateSchema,
+  listCommentsQuerySchema,
   listPostsQuerySchema,
+  listReportsQuerySchema,
   listUsersQuerySchema,
+  reportUpdateSchema,
   roleUpdateSchema,
   statusUpdateSchema,
 } from "../validators/admin.validator";
@@ -345,4 +348,121 @@ export const deleteAdminPost = async (req: Request, res: Response) => {
   ]);
 
   return res.status(200).json({ success: true, message: "Post deleted" });
+};
+
+// GET /api/admin/reports -> reported posts, filterable by status + paginated
+export const getAdminReports = async (req: Request, res: Response) => {
+  const parsed = listReportsQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit, status } = parsed.data;
+
+  const filter: QueryFilter<unknown> = {};
+  if (status) filter.status = status;
+
+  const [reports, total] = await Promise.all([
+    Report.find(filter)
+      .populate([
+        { path: "post", select: "title status" },
+        { path: "reporter", select: "name email avatar" },
+        { path: "resolvedBy", select: "name" },
+      ])
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Report.countDocuments(filter),
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      reports,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    },
+  });
+};
+
+// PATCH /api/admin/reports/:id -> resolve or dismiss (records who/when)
+export const updateAdminReport = async (req: Request, res: Response) => {
+  const currentUser = req.user;
+  if (!currentUser) throw new HttpError(401, "You are not logged in (unauthorized)");
+
+  const id = assertValidId(req.params.id, "report");
+  const parsed = reportUpdateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
+  }
+  const { status } = parsed.data;
+
+  const report = await Report.findById(id);
+  if (!report) throw new HttpError(404, "Report not found");
+
+  report.status = status;
+  report.resolvedBy = currentUser._id;
+  report.resolvedAt = new Date();
+  await report.save();
+
+  return res.status(200).json({
+    success: true,
+    message: status === "resolved" ? "Report resolved" : "Report dismissed",
+  });
+};
+
+// GET /api/admin/comments -> latest comments, searchable + paginated
+export const getAdminComments = async (req: Request, res: Response) => {
+  const parsed = listCommentsQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit, q } = parsed.data;
+
+  const filter: QueryFilter<unknown> = {};
+  if (q) filter.text = new RegExp(escapeRegExp(q), "i");
+
+  const [comments, total] = await Promise.all([
+    Comment.find(filter)
+      .populate([
+        { path: "author", select: "name email avatar" },
+        { path: "post", select: "title status" },
+      ])
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Comment.countDocuments(filter),
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      comments,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    },
+  });
+};
+
+// DELETE /api/admin/comments/:id -> remove comment + decrement post count
+export const deleteAdminComment = async (req: Request, res: Response) => {
+  const id = assertValidId(req.params.id, "comment");
+
+  const comment = await Comment.findById(id);
+  if (!comment) throw new HttpError(404, "Comment not found");
+
+  await comment.deleteOne();
+  await Post.updateOne(
+    { _id: comment.post, commentsCount: { $gt: 0 } },
+    { $inc: { commentsCount: -1 } },
+  );
+
+  return res.status(200).json({ success: true, message: "Comment deleted" });
 };

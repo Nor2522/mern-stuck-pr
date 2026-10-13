@@ -49,7 +49,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.1 | Admin layout and dashboard | DONE | _(see git log)_ | `/api/admin/*` behind `authorize` + `requireRole("admin")`; `GET /api/admin/stats` (totals, 14-day daily new users/posts zero-filled, latest 5 users/posts); `/admin` sidebar layout (`AdminSidebar` + `AdminTopbar` breadcrumb/user menu) with nested routes (Dashboard live, others placeholders); `AdminDashboard` = 4 stat cards + two recharts bar charts + two recent lists with skeleton/error; added `recharts` |
 | T3.2 | Manage users | DONE | _(see git log)_ | `/api/admin/users` (search name/email, role/status filters, pagination, newest/oldest sort, per-user posts count) + `PATCH .../role`, `PATCH .../ban`, `DELETE .../:id`; safety rules on backend (no self role/ban/delete, last-admin protected); hard delete cascades the user's posts (Cloudinary destroy), likes, comments, bookmarks, reports, plus avatar; `/admin/users` table with filters + row actions (`DropdownMenu`) + delete `AlertDialog` |
 | T3.3 | Manage posts | DONE | _(see git log)_ | `/api/admin/posts` (all posts incl. hidden, `q`/`status` filters, newest/oldest/popular sort, pagination) + `PATCH /admin/posts/:id/status` + `DELETE /admin/posts/:id` (Cloudinary destroy + like/bookmark/comment/report cascade); `/admin/posts` table with search/filters/sort, status badge, row actions (open public page, hide/publish, delete `AlertDialog`); shared `FilterSelect` extracted (users + posts pages) |
-| T3.4 | Moderation: comments and reports | TODO | — | — |
+| T3.4 | Moderation: comments and reports | DONE | _(see git log)_ | `/api/admin/reports` (status filter open/resolved/dismissed, paginated, post+reporter+resolvedBy populated) + `PATCH /admin/reports/:id` (resolve/dismiss, records `resolvedBy`/`resolvedAt`); `/api/admin/comments` (search + pagination, author+post populated) + `DELETE /admin/comments/:id` (decrements `commentsCount`); `/admin/reports` tabbed table (segmented Open/Resolved/Dismissed, row actions resolve/dismiss/hide post/open/delete post) and `/admin/comments` table (search + delete) replace their placeholders |
 | T3.5 | Manage categories | TODO | — | — |
 | T4.1 | Security hardening review | TODO | — | — |
 | T4.2 | Tests | TODO | — | — |
@@ -83,6 +83,44 @@ Pre-existing lint findings (baseline, target for T0.2):
   `/admin/users` rendered the 6-column table (10 rows) and `/admin/posts` the
   8-column table (6 rows). The disposable admin used for the check was deleted
   (`verify_` remaining: 0).
+- **T3.4 — moderation:** new admin endpoints, all behind `authorize` +
+  `requireRole("admin")`: `GET /api/admin/reports` (`status` filter +
+  `page`/`limit`, populated `post title,status` / `reporter name,email,avatar` /
+  `resolvedBy name`), `PATCH /api/admin/reports/:id` (`{"status":"resolved"|"dismissed"}`
+  sets `status` + `resolvedBy` = current admin + `resolvedAt` = now),
+  `GET /api/admin/comments` (`q` text search + pagination, populated
+  `author`/`post`) and `DELETE /api/admin/comments/:id` (removes the comment and
+  decrements the post's `commentsCount`, mirroring the owner-delete path).
+  Validators added: `reportUpdateSchema`, `listReportsQuerySchema`,
+  `listCommentsQuerySchema`. Client: `useAdminReports`/`useUpdateReportStatus`
+  and `useAdminComments`/`useDeleteAdminComment` (invalidate `admin` + public
+  `comments`/`posts` keys); `/admin/reports` and `/admin/comments` pages replace
+  their `AdminPlaceholder`s in `router.tsx`.
+- **T3.4 — no new dependencies; tabs are a hand-rolled segmented control.**
+  The plan's "tabs" are implemented as a small `Button` group (secondary/ghost)
+  rather than adding a shadcn/base-ui `tabs` component, so no package was
+  installed. The reports "hide post"/"delete post" actions reuse the existing
+  `PATCH /api/admin/posts/:id/status` and `DELETE /api/admin/posts/:id` (no
+  duplicate endpoints). Deleting the reported post cascades its reports away, so
+  that row disappears from the list.
+- **T3.4 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. curl (verify_ data): `GET /admin/reports`
+  anon **401**, normal user **403**, admin **200**; `?status=open` returns the
+  report with populated post/reporter/reason/details; invalid `{"status":"bogus"}`
+  → **400** and `?status=bogus` → **400**; `PATCH …/reports/:id {"status":"resolved"}`
+  → **200** and the `?status=resolved` list shows `resolvedBy` + `resolvedAt`;
+  `GET /admin/comments` → **200** with author+post; `DELETE /admin/comments/:id`
+  → **200** (post `commentsCount` `1→0`), second/unknown id → **404**. Live
+  headless chrome (chromedriver + dev server, admin cookie injected):
+  `/admin/reports` rendered the 6-column table with tabs **Open/Resolved/Dismissed**;
+  a scripted row-menu → **Resolve** toasted **"Report resolved"**, the row left the
+  Open tab, and the Resolved tab showed **"Resolved by Admin · Oct 13, 2026"**;
+  `/admin/comments` rendered the 5-column table, and a scripted row-menu →
+  **Delete** → confirm toasted **"Comment deleted"** and removed the row. All
+  `verify_` users/posts/reports/records were deleted afterwards (0 remaining).
+- **T3.4 — a real open report and a real comment were left untouched:** the
+  dev DB already contained a report on "NEWEST POST 1791805431" (by `nor252`) and
+  a comment "this is aswome"; only the `verify_` rows were acted on.
 - **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
   /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
   impossible. Both now also return `role` (defaulting to `"user"`), `avatar`

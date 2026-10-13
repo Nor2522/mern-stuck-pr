@@ -3,17 +3,22 @@ import authorize from "../middlewares/auth.middleware";
 import { requireRole } from "../middlewares/role.middleware";
 import { validateBody } from "../middlewares/validate.middleware";
 import {
+  deleteAdminComment,
   deleteAdminPost,
   deleteAdminUser,
+  getAdminComments,
   getAdminPosts,
+  getAdminReports,
   getAdminStats,
   getAdminUsers,
   updateAdminPostStatus,
+  updateAdminReport,
   updateAdminUserBan,
   updateAdminUserRole,
 } from "../controllers/admin.controller";
 import {
   banUpdateSchema,
+  reportUpdateSchema,
   roleUpdateSchema,
   statusUpdateSchema,
 } from "../validators/admin.validator";
@@ -45,5 +50,15 @@ adminRouter.patch(
   asyncHandler(updateAdminPostStatus),
 );
 adminRouter.delete("/posts/:id", asyncHandler(deleteAdminPost));
+
+adminRouter.get("/reports", asyncHandler(getAdminReports));
+adminRouter.patch(
+  "/reports/:id",
+  validateBody(reportUpdateSchema),
+  asyncHandler(updateAdminReport),
+);
+
+adminRouter.get("/comments", asyncHandler(getAdminComments));
+adminRouter.delete("/comments/:id", asyncHandler(deleteAdminComment));
 
 export default adminRouter;
