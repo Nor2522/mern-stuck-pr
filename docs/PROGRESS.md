@@ -54,7 +54,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T4.1 | Security hardening review | DONE | _(this commit)_ | Audited every route (auth/role/ownership + zod inputs); added `writeLimiter` (120/15min) to all write endpoints, zod for the comment body + public list queries, upload allowlist (`files:1`, JPEG/PNG/WebP/GIF) and `MulterError`→400; cookie flags/helmet/logs confirmed; no secrets in branch history |
 | T4.2 | Tests | DONE | _(this commit)_ | Split `app.ts` (exported Express app) from `server.ts` (listen + DB) so `supertest` can drive the API; `backend/tests/api.test.ts` — 12 tests on `mongodb-memory-server` covering auth (register/login/me/logout, NoSQL-injection 400, duplicate email 400), posts (public list, create 201, update/delete owner 200 + non-owner 403), admin (user 403 / admin 200, self role/ban 400, ban → 403 `Account suspended`), likes toggle and comments (add 201 + empty 400 + list); `test` script + `supertest`/`mongodb-memory-server` devDeps |
 | T4.3 | UX polish pass | DONE | `f76fdc8`, `4f05d20`, `562a249` | Error boundary page + root `errorElement`; per-page titles for all 6 admin pages; `index.html` meta description + theme-color; fixed ProfilePage + DashBoard stats state gaps; keyboard/focus fixes (PasswordInput a11y labels + ring, Explore clear-search ring, ModeToggle English label). Verified: 42/42 responsive+theme sweep, keyboard-only login/register/create/delete, build+lint+tsc+tests PASS |
-| T4.4 | Docs and release prep | DONE | _(this commit)_ | Rewrote root `README.md` (about, roles, stack, setup, env tables, scripts, API overview, production/deploy notes); completed both `.env.example` files (names + comments); updated `AGENTS.md` (test/build/start commands, dropped 3 now-fixed rough edges, deployment + limitations); replaced the broken `prod` script with `build`+`start` (verified booting + `/api/health` 200) and made the backend suite hermetic (`bunfig.toml` + `tests/setup.ts`, no `.env` needed); made `docs/PROGRESS.md` accurate. Verified by a fresh clone (details below) |
+| T4.4 | Docs and release prep | DONE | _(this commit)_ | Rewrote root `README.md` (about, roles, stack, setup, env tables, scripts, API overview, production/deploy notes); completed both `.env.example` files (names + comments); updated `AGENTS.md` (test/build/start commands, dropped 3 now-fixed rough edges, deployment + limitations); replaced the broken `prod` script with `build`+`start` (verified booting + `/api/health` 200) and made the backend suite hermetic (`bunfig.toml` + `tests/setup.ts`, no `.env` needed); committed `backend/bun.lock` + `client/bun.lock` and stopped ignoring them so fresh installs are deterministic; made `docs/PROGRESS.md` accurate. Verified by a fresh clone (details below) |
 
 ## Final acceptance (after T4.4)
 
@@ -75,6 +75,17 @@ Recorded on: 2026-10-13
 
 ## Open issues / assumptions
 
+- **T4.4 — stray root files (needs your approval to remove):** the repo still
+  tracks a root `bun.lock` (a leftover Bun *workspace* lockfile for the removed
+  root `package.json`, declaring only `multer`) and a root `tsconfig.json` (the
+  `bun init` default). `AGENTS.md` says the two apps are independent with no
+  workspace tooling, so both are orphaned. I left them untouched (deletions need
+  approval). They do not break `bun install`/build/test in either app (verified
+  by temporarily renaming the root lockfile in the throwaway clone).
+- **T4.4 — declared-but-unused dependencies (needs your approval to remove):**
+  `backend` → `jwt`, `bson`, `dotenv-cli`, `nodemon`; `client` → `shadcn` (only
+  used as a CLI via `bunx`, never imported). Pre-existing; the final-acceptance
+  "no unused deps" item is therefore marked PARTIAL.
 - **T4.3 — UX polish pass (committed `f76fdc8`, `4f05d20`, `562a249`):**
   error boundary + per-page titles + `index.html` meta/theme-color + state + a11y
   fixes. Details:
@@ -148,7 +159,21 @@ Recorded on: 2026-10-13
   `NODE_ENV=production PORT=5010 bun ./dist/server.js` → `Server is running on
   port 5010` + `MongoDB connected successfully` and `GET /api/health` → **200**
   `{"success":true,"data":{"status":"ok"}}` (process then stopped, artifact
-  removed). **Fresh-clone verification:** _pending_.
+  removed). **Fresh-clone verification:** cloned the repo into a scratch dir and
+  followed only the README. **Backend:** `bun install`, `bun run build` (exit 0),
+  `bunx tsc --noEmit` (exit 0) and `bun run test` → 12 pass / 0 fail / 44
+  expect() calls — **with no `.env` present** (the T4.4 test preload supplies
+  dummy values; the suite uses `mongodb-memory-server`). **Client:** `bun
+  install` (506 packages, 7s), `bun run build` (exit 0), `bun run lint` (exit 0).
+  **Lockfiles:** `.gitignore` was ignoring `bun.lock`, so a clone had no
+  lockfiles and the client's cold dependency resolution stalled (>150s) in this
+  sandbox; committing `backend/bun.lock` + `client/bun.lock` (and dropping
+  `bun.lock` from `.gitignore`) made the client install deterministic (7s).
+  Caveat: the backend `bun install` populates `node_modules` but its process did
+  not return within the sandbox timeout (a network-bound lifecycle under
+  `mongodb-memory-server`); the same command with `--frozen-lockfile` returns
+  immediately and every subsequent README step passes. Scratch dir deleted after
+  verification.
 
 - **T3.3 — manage posts:** backend `getAdminPosts` (resolves `status`/q/sort, paginated, author `name,avatar,email` + category populated), `updateAdminPostStatus` (hide/publish), `deleteAdminPost` (destroy Cloudinary image, cascade likes/bookmarks/comments/reports). Client `/admin/posts`: search (title/description), status + sort selects, skeleton/empty/error states, pagination; actions dropdown "Open public page" (target blank), Hide/Publish toggle, Delete via `AlertDialog`. Mutations invalidate `admin` + public `posts` + `my-posts` query keys so a hidden post disappears from the public UI immediately. The `FilterSelect` helper from the Users page was extracted to `client/src/features/admin/components/FilterSelect.tsx` and reused here (no duplication).
 - **T3.3 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0); backend `bunx tsc --noEmit` PASS. curl (verify_ data): `/admin/posts` anon **401**, normal user **403**, admin **200**; `q` and `status=hidden` filters work; PATCH hide → 200 and public `?author=` list drops the post (`total:1→0`), public `/post/:id` → **404**, owner `/post/user` still shows it as `"status":"hidden"`; PATCH publish → public again (`0→1`); invalid `{"status":"draft"}` → **400**; DELETE → 200, second delete → **404**. Live headless chrome (chromedriver + dev server, admin cookie injected): `/admin/posts` rendered the table with the verify post (`verify_user | Uncategorized | Published | 0 | 0`), a scripted click on row actions → "Hide" toasts "Post hidden" and the badge flips to **Hidden**. All `verify_` users + posts were deleted afterwards (0 remaining).
