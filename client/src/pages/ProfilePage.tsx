@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useParams } from "react-router"
 import { format } from "date-fns"
 import { isAxiosError } from "axios"
-import { FileQuestion, UserRound } from "lucide-react"
+import { AlertTriangle, FileQuestion, UserRound } from "lucide-react"
 import {
   Avatar,
   AvatarFallback,
@@ -48,6 +48,9 @@ const ProfilePage = () => {
       ? profileQuery.error.response?.status
       : undefined
     if (status === 404) return <ProfileUnavailable />
+    return (
+      <ProfileError onRetry={() => profileQuery.refetch()} />
+    )
   }
 
   if (profileQuery.isLoading) return <ProfileSkeleton />
@@ -95,6 +98,13 @@ const ProfilePage = () => {
             {Array.from({ length: 3 }).map((_, index) => (
               <PostCardSkeleton key={index} />
             ))}
+          </div>
+        ) : postsQuery.isError ? (
+          <div className="mt-6 flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
+            <p className="font-medium">Could not load this user's posts.</p>
+            <Button variant="outline" onClick={() => postsQuery.refetch()}>
+              Retry
+            </Button>
           </div>
         ) : postsQuery.data?.posts.length ? (
           <>
@@ -195,6 +205,21 @@ const ProfileUnavailable = () => (
       nativeButton={false}
     >
       Back home
+    </Button>
+  </div>
+)
+
+const ProfileError = ({ onRetry }: { onRetry: () => void }) => (
+  <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 px-4 py-24 text-center">
+    <AlertTriangle className="size-8 text-muted-foreground" />
+    <h1 className="font-heading text-2xl font-semibold">
+      Could not load this profile
+    </h1>
+    <p className="text-muted-foreground">
+      Something went wrong. Please try again.
+    </p>
+    <Button className="mt-2" variant="outline" onClick={onRetry}>
+      Retry
     </Button>
   </div>
 )

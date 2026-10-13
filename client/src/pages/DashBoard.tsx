@@ -14,11 +14,13 @@ const StatCard = ({
   value,
   icon: Icon,
   loading,
+  error,
 }: {
   label: string
   value?: number
   icon: typeof FileText
   loading: boolean
+  error: boolean
 }) => (
   <Card>
     <CardContent className="flex items-center gap-3">
@@ -30,7 +32,9 @@ const StatCard = ({
         {loading ? (
           <Skeleton className="mt-1 h-6 w-10" />
         ) : (
-          <p className="font-heading text-xl font-semibold">{value ?? 0}</p>
+          <p className="font-heading text-xl font-semibold">
+            {error ? "—" : (value ?? 0)}
+          </p>
         )}
       </div>
     </CardContent>
@@ -65,18 +69,21 @@ const DashBoard = () => {
           value={stats.data?.totalPosts}
           icon={FileText}
           loading={stats.isLoading}
+          error={stats.isError}
         />
         <StatCard
           label="Total likes"
           value={stats.data?.totalLikes}
           icon={Heart}
           loading={stats.isLoading}
+          error={stats.isError}
         />
         <StatCard
           label="Total comments"
           value={stats.data?.totalComments}
           icon={MessageSquare}
           loading={stats.isLoading}
+          error={stats.isError}
         />
       </div>
 

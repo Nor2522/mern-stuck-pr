@@ -53,10 +53,58 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.5 | Manage categories | DONE | _(this commit)_ | Backend: `GET/POST /api/admin/categories`, `PATCH/DELETE /api/admin/categories/:id` (auto-slug, friendly 409 on duplicate name/slug, per-category `postsCount`, delete blocked with 409 while posts remain, `?reassignTo=<id>` moves posts then deletes). Client: `/admin/categories` table + create/rename `Dialog` (RHF + zod) + delete `AlertDialog` with reassign `FilterSelect`; invalidates admin + public `categories` keys. New `backend/utils/slugify.ts`. |
 | T4.1 | Security hardening review | DONE | _(this commit)_ | Audited every route (auth/role/ownership + zod inputs); added `writeLimiter` (120/15min) to all write endpoints, zod for the comment body + public list queries, upload allowlist (`files:1`, JPEG/PNG/WebP/GIF) and `MulterError`→400; cookie flags/helmet/logs confirmed; no secrets in branch history |
 | T4.2 | Tests | DONE | _(this commit)_ | Split `app.ts` (exported Express app) from `server.ts` (listen + DB) so `supertest` can drive the API; `backend/tests/api.test.ts` — 12 tests on `mongodb-memory-server` covering auth (register/login/me/logout, NoSQL-injection 400, duplicate email 400), posts (public list, create 201, update/delete owner 200 + non-owner 403), admin (user 403 / admin 200, self role/ban 400, ban → 403 `Account suspended`), likes toggle and comments (add 201 + empty 400 + list); `test` script + `supertest`/`mongodb-memory-server` devDeps |
-| T4.3 | UX polish pass | TODO | — | — |
+| T4.3 | UX polish pass | DONE | _(uncommitted)_ | Error boundary page + root `errorElement`; per-page titles for all 6 admin pages; `index.html` meta description + theme-color; fixed ProfilePage + DashBoard stats state gaps; keyboard/focus fixes (PasswordInput a11y labels + ring, Explore clear-search ring, ModeToggle English label). Verified: 42/42 responsive+theme sweep, keyboard-only login/register/create/delete, build+lint+tsc PASS |
 | T4.4 | Docs and release prep | TODO | — | — |
 
 ## Open issues / assumptions
+
+- **T4.3 — UX polish pass (uncommitted):** error boundary + per-page titles +
+  `index.html` meta/theme-color + state + a11y fixes. Details:
+  - **Error boundary page:** new `client/src/pages/RouteErrorPage.tsx`
+    (`useRouteError`, "Something went wrong" + Back home + Reload page +
+    route path), wired as the root route's `errorElement` in `router.tsx` so it
+    renders inside the shared `Navbar`/`Footer` layout and catches any
+    child-route render/loader error.
+  - **Page titles:** all six admin child pages now call `useDocumentTitle`
+    (Admin dashboard / Users / Posts / Comments / Reports / Categories) — they
+    previously all inherited the static "Admin" title. Public pages were
+    already covered.
+  - **`index.html`:** added a meta description, `theme-color` for light
+    (`#ffffff`) and dark (`#0a0a0a`) via `prefers-color-scheme` media queries
+    (favicon already existed as `public/favicon.svg`).
+  - **State coverage fixes:** `ProfilePage` now shows a real error+Retry for
+    non-404 profile failures (previously fell through to an empty card) and for
+    the posts list (previously fell into the empty state); `DashBoard` stat
+    cards show "—" on stats error instead of silently rendering `0`.
+  - **Keyboard/focus + a11y strings:** `PasswordInput` toggle now English
+    `Show/Hide password` (was Somali `Qari/Muuji password-ka`, violating the
+    English-only convention), `aria-pressed`, and a `focus-visible` ring;
+    Explore's "Clear search" button got a `focus-visible` ring (and now clears
+    the URL immediately instead of waiting on the 400ms debounce); `ModeToggle`
+    `aria-label` is English now ("Toggle color theme", was Somali).
+  - **SC evidence:** client `bun run build` PASS (chunk >500 kB warning only,
+    pre-existing), `bun run lint` PASS (0/0), backend `bunx tsc --noEmit` PASS.
+  - **Responsive/theme sweep — 42/42:** headless chromium against a
+    `vite preview` build (4173; the Vite dev server is too slow to transform the
+    full 3370-module graph inside headless, so the built artifact was checked):
+    `/`, `/explore`, `/posts/:id`, `/u/:id`, `/login`, `/register` and the 404
+    page at **375/768/1280 × light/dark** — zero horizontal overflow, correct
+    `.dark`/`.light` applied, exact document titles, zero app console errors
+    (the only errors were the expected logged-out `/me` 401 resource load).
+  - **Keyboard-only run-through:** CDP-driven Tab/Enter audits. Login and
+    register tab trails reach every control (brand → nav → theme toggle →
+    login/register links → all fields → show-password toggles → submit) with a
+    visible `focus-visible` ring on each stop. Authenticated dashboard flow:
+    Tab → "New post" → Enter opens the dialog with initial focus on the Title
+    input (ring visible), Tab order through title → description → category →
+    tags → image → Create post, Enter submits and the new post appears with a
+    toast; the delete flow focused the card's "Delete post" button, Enter
+    opened the confirm `AlertDialog`, Tab → "Delete" → Enter removed the post
+    (dashboard back to "No posts yet").
+  - **Temp residue:** one account `t43key1791902892@example.com` was created to
+    run the authenticated keyboard flow; its post was deleted through the flow.
+    The account itself was deleted after your approval (counted users
+    26→25 with posts unchanged at 7).
 
 - **T3.3 — manage posts:** backend `getAdminPosts` (resolves `status`/q/sort, paginated, author `name,avatar,email` + category populated), `updateAdminPostStatus` (hide/publish), `deleteAdminPost` (destroy Cloudinary image, cascade likes/bookmarks/comments/reports). Client `/admin/posts`: search (title/description), status + sort selects, skeleton/empty/error states, pagination; actions dropdown "Open public page" (target blank), Hide/Publish toggle, Delete via `AlertDialog`. Mutations invalidate `admin` + public `posts` + `my-posts` query keys so a hidden post disappears from the public UI immediately. The `FilterSelect` helper from the Users page was extracted to `client/src/features/admin/components/FilterSelect.tsx` and reused here (no duplication).
 - **T3.3 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0); backend `bunx tsc --noEmit` PASS. curl (verify_ data): `/admin/posts` anon **401**, normal user **403**, admin **200**; `q` and `status=hidden` filters work; PATCH hide → 200 and public `?author=` list drops the post (`total:1→0`), public `/post/:id` → **404**, owner `/post/user` still shows it as `"status":"hidden"`; PATCH publish → public again (`0→1`); invalid `{"status":"draft"}` → **400**; DELETE → 200, second delete → **404**. Live headless chrome (chromedriver + dev server, admin cookie injected): `/admin/posts` rendered the table with the verify post (`verify_user | Uncategorized | Published | 0 | 0`), a scripted click on row actions → "Hide" toasts "Post hidden" and the badge flips to **Hidden**. All `verify_` users + posts were deleted afterwards (0 remaining).
