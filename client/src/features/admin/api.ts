@@ -7,18 +7,21 @@ import {
 import { toast } from "sonner"
 import { api } from "@/lib/api"
 import { getErrorMessage } from "@/lib/error"
+import { myPostsKeys, postsKeys } from "@/features/posts/api"
 import type { ApiMessage, ApiSuccess } from "@/types/api"
 import type {
   AdminStats,
   AdminUser,
   AdminUsersResponse,
 } from "@/types/admin"
+import type { PostStatus, PostsResponse } from "@/types/post"
 import type { UserRole } from "@/types/user"
 
 export const adminKeys = {
   all: ["admin"] as const,
   stats: ["admin", "stats"] as const,
   users: (params: AdminUsersParams) => ["admin", "users", params] as const,
+  posts: (params: AdminPostsParams) => ["admin", "posts", params] as const,
 }
 
 export type AdminUsersParams = {
@@ -28,6 +31,14 @@ export type AdminUsersParams = {
   role?: UserRole
   status?: "active" | "banned"
   sort?: "newest" | "oldest"
+}
+
+export type AdminPostsParams = {
+  page?: number
+  limit?: number
+  q?: string
+  status?: PostStatus
+  sort?: "newest" | "oldest" | "popular"
 }
 
 export const useAdminStats = () =>
@@ -117,3 +128,56 @@ export const useDeleteUser = () => {
 }
 
 export type { AdminUser }
+
+export const useAdminPosts = (params: AdminPostsParams) =>
+  useQuery({
+    queryKey: adminKeys.posts(params),
+    queryFn: async (): Promise<PostsResponse> => {
+      const { data } = await api.get<ApiSuccess<PostsResponse>>("/admin/posts", {
+        params,
+      })
+      return data.data
+    },
+    placeholderData: keepPreviousData,
+  })
+
+const invalidatePosts = (queryClient: ReturnType<typeof useQueryClient>) => {
+  queryClient.invalidateQueries({ queryKey: postsKeys.all })
+  queryClient.invalidateQueries({ queryKey: myPostsKeys.all })
+}
+
+export const useUpdatePostStatus = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: PostStatus }) => {
+      const { data } = await api.patch<ApiMessage>(`/admin/posts/${id}/status`, {
+        status,
+      })
+      return data
+    },
+    onSuccess: (data: ApiMessage) => {
+      invalidateAdmin(queryClient)
+      invalidatePosts(queryClient)
+      toast.success(data.message)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}
+
+export const useDeleteAdminPost = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.delete<ApiMessage>(`/admin/posts/${id}`)
+      return data
+    },
+    onSuccess: (data: ApiMessage) => {
+      invalidateAdmin(queryClient)
+      invalidatePosts(queryClient)
+      toast.success(data.message)
+    },
+    onError: (error) => toast.error(getErrorMessage(error)),
+  })
+}

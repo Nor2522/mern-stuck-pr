@@ -3,6 +3,7 @@ import App from "./App"
 import AdminPage from "./pages/AdminPage"
 import AdminDashboard from "./pages/admin/AdminDashboard"
 import AdminPlaceholder from "./pages/admin/AdminPlaceholder"
+import AdminPostsPage from "./pages/admin/AdminPostsPage"
 import AdminUsersPage from "./pages/admin/AdminUsersPage"
 import DashBoard from "./pages/DashBoard"
 import ExplorePage from "./pages/ExplorePage"
@@ -80,7 +81,7 @@ export const router = createBrowserRouter([
           },
           {
             path: "posts",
-            element: <AdminPlaceholder title="Posts" task="T3.3" />,
+            element: <AdminPostsPage />,
           },
           {
             path: "comments",

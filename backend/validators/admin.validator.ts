@@ -18,3 +18,17 @@ export const listUsersQuerySchema = z.object({
   status: z.enum(["active", "banned"]).optional(),
   sort: z.enum(["newest", "oldest"]).default("newest"),
 });
+
+export const statusUpdateSchema = z.object({
+  status: z.enum(["published", "hidden"], {
+    message: "Status must be 'published' or 'hidden'",
+  }),
+});
+
+export const listPostsQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
+  q: z.string().trim().max(100).optional(),
+  status: z.enum(["published", "hidden"]).optional(),
+  sort: z.enum(["newest", "oldest", "popular"]).default("newest"),
+});

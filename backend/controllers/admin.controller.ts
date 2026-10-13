@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import mongoose, { type QueryFilter } from "mongoose";
 import User from "../models/user.model";
-import Post from "../models/post.model";
+import Post, { type PostType } from "../models/post.model";
 import Comment from "../models/comment.model";
 import Like from "../models/like.model";
 import Bookmark from "../models/bookmark.model";
@@ -10,8 +10,10 @@ import cloudinary from "../config/cloudinary";
 import { HttpError } from "../middlewares/error.middleware";
 import {
   banUpdateSchema,
+  listPostsQuerySchema,
   listUsersQuerySchema,
   roleUpdateSchema,
+  statusUpdateSchema,
 } from "../validators/admin.validator";
 
 // Last 14 days, format { date: "YYYY-MM-DD", count }
@@ -80,9 +82,12 @@ export const getAdminStats = async (_req: Request, res: Response) => {
 const escapeRegExp = (value: string) =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-const assertValidId = (id: string | string[] | undefined): string => {
+const assertValidId = (
+  id: string | string[] | undefined,
+  entity = "user",
+): string => {
   if (!id || typeof id !== "string" || !mongoose.isValidObjectId(id)) {
-    throw new HttpError(400, "Invalid user id");
+    throw new HttpError(400, `Invalid ${entity} id`);
   }
   return id;
 };
@@ -249,4 +254,95 @@ export const deleteAdminUser = async (req: Request, res: Response) => {
   ]);
 
   return res.status(200).json({ success: true, message: "User deleted" });
+};
+
+// GET /api/admin/posts -> all posts (incl. hidden), filterable + paginated
+export const getAdminPosts = async (req: Request, res: Response) => {
+  const parsed = listPostsQuerySchema.safeParse(req.query);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid query");
+  }
+  const { page, limit, q, status, sort } = parsed.data;
+
+  const filter: QueryFilter<PostType> = {};
+  if (status) filter.status = status;
+  if (q) {
+    const rx = new RegExp(escapeRegExp(q), "i");
+    filter.$or = [{ title: rx }, { description: rx }];
+  }
+
+  const sortMap: Record<string, -1 | 1> =
+    sort === "oldest"
+      ? { createdAt: 1 }
+      : sort === "popular"
+        ? { likesCount: -1, createdAt: -1 }
+        : { createdAt: -1 };
+
+  const [posts, total] = await Promise.all([
+    Post.find(filter)
+      .populate([
+        { path: "author", select: "name avatar email" },
+        { path: "category", select: "name slug" },
+      ])
+      .sort(sortMap)
+      .skip((page - 1) * limit)
+      .limit(limit),
+    Post.countDocuments(filter),
+  ]);
+
+  return res.status(200).json({
+    success: true,
+    data: {
+      posts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    },
+  });
+};
+
+// PATCH /api/admin/posts/:id/status -> hide or publish a post
+export const updateAdminPostStatus = async (req: Request, res: Response) => {
+  const id = assertValidId(req.params.id, "post");
+  const parsed = statusUpdateSchema.safeParse(req.body);
+  if (!parsed.success) {
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
+  }
+  const { status } = parsed.data;
+
+  const post = await Post.findById(id);
+  if (!post) throw new HttpError(404, "Post not found");
+
+  post.status = status;
+  await post.save();
+
+  return res.status(200).json({
+    success: true,
+    message: status === "hidden" ? "Post hidden" : "Post published",
+  });
+};
+
+// DELETE /api/admin/posts/:id -> hard delete post + its Cloudinary image + related data
+export const deleteAdminPost = async (req: Request, res: Response) => {
+  const id = assertValidId(req.params.id, "post");
+
+  const post = await Post.findById(id);
+  if (!post) throw new HttpError(404, "Post not found");
+
+  if (post.image?.publicId) {
+    await cloudinary.uploader.destroy(post.image.publicId);
+  }
+  await post.deleteOne();
+
+  await Promise.all([
+    Like.deleteMany({ post: post._id }),
+    Bookmark.deleteMany({ post: post._id }),
+    Comment.deleteMany({ post: post._id }),
+    Report.deleteMany({ post: post._id }),
+  ]);
+
+  return res.status(200).json({ success: true, message: "Post deleted" });
 };
