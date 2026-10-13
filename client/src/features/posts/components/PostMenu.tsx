@@ -13,7 +13,7 @@ import { useAuth } from "@/features/auth/auth-context"
 import { ReportDialog } from "@/features/reports/components/ReportDialog"
 import type { PostType } from "@/types/post"
 
-// "More" dropdown: hadda wuxuu leeyahay Report kaliya; qof iska leh post-kiisa lama tusiyo.
+// "More" dropdown: currently only has Report; post owners don't see it.
 export const PostMenu = ({
   post,
   size = "xs",

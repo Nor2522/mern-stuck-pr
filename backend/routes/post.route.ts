@@ -24,14 +24,14 @@ import { asyncHandler } from "../utils/asyncHandler.ts";
 
 const postRouter = Router();
 
-// Public: liiska iyo faahfaahinta post-ka (optionalAuth -> likedByMe/bookmarkedByMe)
+// Public: post list and details (optionalAuth -> likedByMe/bookmarkedByMe)
 postRouter.get("/", optionalAuth, asyncHandler(getPosts));
-// Authorized: posts-ka isticmaalaha hadda (waa inuu ka horreeyaa "/:id")
+// Authorized: current user's posts (must come before "/:id")
 postRouter.get("/user", authorize, asyncHandler(getUserPosts));
 postRouter.get("/user/stats", authorize, asyncHandler(getUserStats));
 postRouter.get("/:id", optionalAuth, asyncHandler(getPostById));
 
-// Like / bookmark / comments-ka post-ka
+// Like / bookmark / comments for the post
 postRouter.post("/:id/like", authorize, asyncHandler(toggleLike));
 postRouter.post("/:id/bookmark", authorize, asyncHandler(toggleBookmark));
 postRouter.get("/:id/comments", asyncHandler(getComments));

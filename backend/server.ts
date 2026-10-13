@@ -9,14 +9,15 @@ import postRouter from "./routes/post.route.ts"
 import categoryRouter from "./routes/category.route.ts"
 import commentRouter from "./routes/comment.route.ts"
 import bookmarkRouter from "./routes/bookmark.route.ts"
+import adminRouter from "./routes/admin.route.ts"
 import { errorHandler, notFound } from "./middlewares/error.middleware.ts"
 
 const app = express()
 
-// Ammaanka aasaasiga ah
+// Basic security
 app.use(helmet())
 
-// CORS: oggolow frontend-ka (CLIENT_URL) inuu la hadlo backend-ka
+// CORS: allow the frontend (CLIENT_URL) to talk to the backend
 app.use(
   cors({
     origin: CLIENT_URL,
@@ -38,12 +39,13 @@ app.use("/api/post", postRouter)
 app.use("/api/categories", categoryRouter)
 app.use("/api/comment", commentRouter)
 app.use("/api/bookmarks", bookmarkRouter)
+app.use("/api/admin", adminRouter)
 
-// 404 + global error handler (waa inay ugu dambeeyaan)
+// 404 + global error handler (must be last)
 app.use(notFound)
 app.use(errorHandler)
 
 app.listen(PORT, async () => {
-  console.log(`Server-ku wuxuu socdaa port ${PORT}`)
+  console.log(`Server is running on port ${PORT}`)
   await connectDB()
 })

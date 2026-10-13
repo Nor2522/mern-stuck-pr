@@ -21,7 +21,7 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 type ServerFieldError = { field?: string; message?: string }
 
 const RegisterPage = () => {
-  useDocumentTitle("Isdiiwaangelin")
+  useDocumentTitle("Sign up")
   const navigate = useNavigate()
 
   const form = useForm<RegisterFormValues>({
@@ -34,7 +34,7 @@ const RegisterPage = () => {
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       await signUp(values)
-      toast.success("Akoonkaaga si guul leh ayaa loo abuuray. Fadlan soo gal.")
+      toast.success("Your account was created successfully. Please log in.")
       navigate("/login")
     } catch (error) {
       if (isAxiosError(error)) {
@@ -47,7 +47,7 @@ const RegisterPage = () => {
         for (const item of fieldErrors) {
           if (item.field === "email" || item.field === "name") {
             form.setError(item.field, {
-              message: item.message ?? "Xogtan hore ayaa loo isticmaalay",
+              message: item.message ?? "This information is already in use",
             })
             mapped = true
           }
@@ -56,7 +56,7 @@ const RegisterPage = () => {
         const message =
           data?.message ??
           (error.code === "ERR_NETWORK"
-            ? "Server-ka lama helin. Fadlan isku day mar kale."
+            ? "Could not reach the server. Please try again."
             : error.message)
 
         if (!mapped) {
@@ -64,7 +64,7 @@ const RegisterPage = () => {
         }
         toast.error(message)
       } else {
-        toast.error("Khalad ayaa dhacay")
+        toast.error("Something went wrong")
       }
     }
   }
@@ -73,21 +73,21 @@ const RegisterPage = () => {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Samee akoon</CardTitle>
+          <CardTitle>Create account</CardTitle>
           <CardDescription>
-            Ku biir bulshada oo wadaag horumarkaaga.
+            Join the community and share your progress.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)} noValidate>
             <FieldGroup>
               <Field data-invalid={!!errors.name}>
-                <FieldLabel htmlFor="name">Magac</FieldLabel>
+                <FieldLabel htmlFor="name">Name</FieldLabel>
                 <Input
                   id="name"
                   type="text"
                   autoComplete="name"
-                  placeholder="Magacaaga"
+                  placeholder="Your name"
                   aria-invalid={!!errors.name}
                   {...form.register("name")}
                 />
@@ -112,7 +112,7 @@ const RegisterPage = () => {
                 <PasswordInput
                   id="password"
                   autoComplete="new-password"
-                  placeholder="Ugu yaraan 8 xaraf"
+                  placeholder="At least 8 characters"
                   aria-invalid={!!errors.password}
                   {...form.register("password")}
                 />
@@ -120,11 +120,11 @@ const RegisterPage = () => {
               </Field>
 
               <Field data-invalid={!!errors.confirmPassword}>
-                <FieldLabel htmlFor="confirmPassword">Xaqiiji password-ka</FieldLabel>
+                <FieldLabel htmlFor="confirmPassword">Confirm password</FieldLabel>
                 <PasswordInput
                   id="confirmPassword"
                   autoComplete="new-password"
-                  placeholder="Ku celi password-ka"
+                  placeholder="Re-enter the password"
                   aria-invalid={!!errors.confirmPassword}
                   {...form.register("confirmPassword")}
                 />
@@ -139,17 +139,17 @@ const RegisterPage = () => {
               className="mt-6 w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Waa la abuurayaa…" : "Isdiiwaangeli"}
+              {isSubmitting ? "Creating…" : "Register"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Akoon ma haysataa?{" "}
+            Already have an account?{" "}
             <Link
               to="/login"
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
-              Soo gal
+              Log in
             </Link>
           </p>
         </CardContent>

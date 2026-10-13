@@ -9,14 +9,14 @@ export class HttpError extends Error {
   }
 }
 
-// Route aan la aqoonsan -> had iyo jeer 404 JSON ah
+// Unknown route -> always return JSON 404
 export const notFound = (req: Request, res: Response) => {
   res
     .status(404)
-    .json({ success: false, message: `Route lama helin: ${req.originalUrl}` });
+    .json({ success: false, message: `Route not found: ${req.originalUrl}` });
 };
 
-// Global error middleware: qaabka { success: false, message }
+// Global error middleware: format { success: false, message }
 export const errorHandler = (
   err: unknown,
   _req: Request,
@@ -28,7 +28,7 @@ export const errorHandler = (
   const message =
     err instanceof Error && (!isProduction || status < 500)
       ? err.message
-      : "Khalad server ah ayaa dhacay";
+      : "Internal server error";
 
   const body: { success: false; message: string; stack?: string } = {
     success: false,

@@ -13,7 +13,7 @@ import {
   updatePostSchema,
 } from "../validators/post.validator";
 
-// author-ka iyo category-ga la soo buuxiyo
+// Populate author and category
 const populate = [
   { path: "author", select: "name avatar" },
   { path: "category", select: "name slug" },
@@ -22,8 +22,8 @@ const populate = [
 const DEFAULT_LIMIT = 9;
 const MAX_LIMIT = 50;
 
-// Ku dar likedByMe/bookmarkedByMe marka isticmaale soo galay.
-// Wuxuu ku shaqeeyaa document-yo iyo objects labadaba.
+// Adds likedByMe/bookmarkedByMe when a user is logged in.
+// Works with both documents and plain objects.
 const withReactions = async (
   posts: unknown[],
   userId?: string | mongoose.Types.ObjectId,
@@ -69,7 +69,7 @@ const parsePagination = (query: Request["query"]) => {
   return { page, limit };
 };
 
-// category wuxuu noqon karaa ObjectId ama slug -> ObjectId | null
+// category can be an ObjectId or slug -> ObjectId | null
 const findCategoryId = async (value: string): Promise<string | null> => {
   if (mongoose.isValidObjectId(value)) return value;
   const category = await Category.findOne({
@@ -91,7 +91,7 @@ const paginated = (
   },
 });
 
-// Liiska posts-ka oo furan (public): pagination, search, filter, sort
+// Public list of posts: pagination, search, filter, sort
 export const getPosts = async (req: Request, res: Response) => {
   const { page, limit } = parsePagination(req.query);
   const filter: QueryFilter<PostType> = { status: "published" };
@@ -112,7 +112,7 @@ export const getPosts = async (req: Request, res: Response) => {
   const author = typeof req.query.author === "string" ? req.query.author : "";
   if (author) {
     if (!mongoose.isValidObjectId(author)) {
-      throw new HttpError(400, "author aan sax ahayn");
+      throw new HttpError(400, "Invalid author");
     }
     filter.author = new mongoose.Types.ObjectId(author);
   }
@@ -136,27 +136,27 @@ export const getPosts = async (req: Request, res: Response) => {
     .json(paginated(await withReactions(posts, req.user?._id), page, limit, total));
 };
 
-// Hal post oo furan (public): kaliya published
+// Single public post: published only
 export const getPostById = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const post = await Post.findOne({ _id: id, status: "published" }).populate(
     populate,
   );
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   const [withFlags] = await withReactions([post], req.user?._id);
   res.status(200).json({ success: true, data: { post: withFlags } });
 };
 
-// Posts-ka isticmaalaha hadda (waxay ku jiraan hidden, waa authorized)
+// Current user's posts (includes hidden, requires auth)
 export const getUserPosts = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { page, limit } = parsePagination(req.query);
@@ -174,11 +174,11 @@ export const getUserPosts = async (req: Request, res: Response) => {
   res.status(200).json(paginated(posts, page, limit, total));
 };
 
-// Tirakoobka posts-ka isticmaalaha hadda (dashboard stats row)
+// Current user's post stats (dashboard stats row)
 export const getUserStats = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const [result] = await Post.aggregate<{
@@ -207,16 +207,16 @@ export const getUserStats = async (req: Request, res: Response) => {
   });
 };
 
-// Abuur post (image waa ikhtiyaari)
+// Create post (image is optional)
 export const createPost = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const parsed = createPostSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Xog aan sax ahayn");
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
   }
   const { title, description, category, tags } = parsed.data;
 
@@ -229,7 +229,7 @@ export const createPost = async (req: Request, res: Response) => {
   let categoryId: mongoose.Types.ObjectId | undefined;
   if (category) {
     const resolved = await findCategoryId(category);
-    if (!resolved) throw new HttpError(400, "Category lama helin");
+    if (!resolved) throw new HttpError(400, "Category not found");
     categoryId = new mongoose.Types.ObjectId(resolved);
   }
 
@@ -246,32 +246,32 @@ export const createPost = async (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: { post } });
 };
 
-// Cusboonaysii post (kaliya milkiilaha)
+// Update post (owner only)
 export const updatePost = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const post = await Post.findById(id);
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   if (post.author.toString() !== currentUser._id.toString()) {
-    throw new HttpError(403, "Ma lihid fasax aad ku beddesho post-kan");
+    throw new HttpError(403, "You do not have permission to update this post");
   }
 
   const parsed = updatePostSchema.safeParse(req.body);
   if (!parsed.success) {
-    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Xog aan sax ahayn");
+    throw new HttpError(400, parsed.error.issues[0]?.message ?? "Invalid data");
   }
   const { title, description, category, tags } = parsed.data;
 
-  // Haddii sawir cusub la soo diray, kii hore Cloudinary ka tirtir
+  // If a new image is uploaded, delete the old one from Cloudinary
   if (req.file) {
     const result = await uploadToCloudinary(req.file.buffer);
     if (post.image?.publicId) {
@@ -285,7 +285,7 @@ export const updatePost = async (req: Request, res: Response) => {
   if (tags !== undefined) post.tags = tags;
   if (category !== undefined) {
     const resolved = await findCategoryId(category);
-    if (!resolved) throw new HttpError(400, "Category lama helin");
+    if (!resolved) throw new HttpError(400, "Category not found");
     post.category = new mongoose.Types.ObjectId(resolved);
   }
 
@@ -295,23 +295,23 @@ export const updatePost = async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: { post } });
 };
 
-// Tirtir post (kaliya milkiilaha)
+// Delete post (owner only)
 export const deletePost = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const post = await Post.findById(id);
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   if (post.author.toString() !== currentUser._id.toString()) {
-    throw new HttpError(403, "Ma lihid fasax aad ku tirtirto post-kan");
+    throw new HttpError(403, "You do not have permission to delete this post");
   }
 
   if (post.image?.publicId) {
@@ -319,7 +319,7 @@ export const deletePost = async (req: Request, res: Response) => {
   }
   await post.deleteOne();
 
-  // Nadiifi waxyaabaha ku xidhnaa post-ka (likes, bookmarks, comments, reports)
+  // Clean up related data (likes, bookmarks, comments, reports)
   await Promise.all([
     Like.deleteMany({ post: post._id }),
     Bookmark.deleteMany({ post: post._id }),

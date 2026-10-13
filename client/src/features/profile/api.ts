@@ -51,7 +51,7 @@ export const useUpdateProfile = () => {
       queryClient.invalidateQueries({ queryKey: profileKeys.all })
       queryClient.invalidateQueries({ queryKey: postsKeys.all })
       queryClient.invalidateQueries({ queryKey: commentsKeys.all })
-      toast.success("Profaylka waa la cusboonaysiiyay")
+      toast.success("Profile updated")
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })
@@ -65,6 +65,6 @@ export const useChangePassword = () =>
     }) => {
       await api.put("/user/me/password", payload)
     },
-    onSuccess: () => toast.success("Password-ka waa la beddelay"),
+    onSuccess: () => toast.success("Password changed"),
     onError: (error) => toast.error(getErrorMessage(error)),
   })

@@ -217,7 +217,7 @@ export const useCreatePost = () => {
     },
     onSuccess: () => {
       invalidatePostCollections(queryClient)
-      toast.success("Post-ka waa la abuuray")
+      toast.success("Post created")
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })
@@ -237,7 +237,7 @@ export const useUpdatePost = (postId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: postsKeys.detail(postId) })
       invalidatePostCollections(queryClient)
-      toast.success("Post-ka waa la cusboonaysiiyay")
+      toast.success("Post updated")
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })
@@ -253,7 +253,7 @@ export const useDeletePost = () => {
     },
     onSuccess: () => {
       invalidatePostCollections(queryClient)
-      toast.success("Post-ka waa la tirtiray")
+      toast.success("Post deleted")
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })

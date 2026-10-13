@@ -6,17 +6,17 @@ dotenv.config();
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(5000),
-  MONGODB_URI: z.string().min(1, "MONGODB_URI waa loo baahan yahay"),
-  JWT_SECRET: z.string().min(1, "JWT_SECRET waa loo baahan yahay"),
+  MONGODB_URI: z.string().min(1, "MONGODB_URI is required"),
+  JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   JWT_EXPIRES_IN: z.string().min(1).default("30d"),
   CLIENT_URL: z.string().url().default("http://localhost:5173"),
   CLOUDINARY_CLOUD_NAME: z
     .string()
-    .min(1, "CLOUDINARY_CLOUD_NAME waa loo baahan yahay"),
-  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY waa loo baahan yahay"),
+    .min(1, "CLOUDINARY_CLOUD_NAME is required"),
+  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
   CLOUDINARY_API_SECRET: z
     .string()
-    .min(1, "CLOUDINARY_API_SECRET waa loo baahan yahay"),
+    .min(1, "CLOUDINARY_API_SECRET is required"),
 });
 
 const parsed = envSchema.safeParse({
@@ -27,7 +27,7 @@ const parsed = envSchema.safeParse({
 });
 
 if (!parsed.success) {
-  console.error("Khalad: deegaanka (.env) ma dhamaystirna:");
+  console.error("Error: environment (.env) is incomplete:");
   for (const issue of parsed.error.issues) {
     console.error(`  - ${issue.path.join(".")}: ${issue.message}`);
   }

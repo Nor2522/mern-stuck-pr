@@ -12,7 +12,7 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const run = async () => {
   if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
     console.error(
-      "Khalad: ADMIN_EMAIL iyo ADMIN_PASSWORD waa loo baahan yahay (.env).",
+      "Error: ADMIN_EMAIL and ADMIN_PASSWORD are required (.env).",
     );
     process.exit(1);
   }
@@ -25,9 +25,9 @@ const run = async () => {
       existing.role = "admin";
       existing.isBanned = false;
       await existing.save();
-      console.log(`Isticmaalaha ${ADMIN_EMAIL} waxaa loo dallacsiiyay admin.`);
+      console.log(`User ${ADMIN_EMAIL} has been promoted to admin.`);
     } else {
-      console.log(`${ADMIN_EMAIL} horey ayaa admin u ahaa.`);
+      console.log(`${ADMIN_EMAIL} was already an admin.`);
     }
   } else {
     const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
@@ -37,7 +37,7 @@ const run = async () => {
       password: hashedPassword,
       role: "admin",
     });
-    console.log(`Admin cusub ayaa la abuuray: ${ADMIN_EMAIL}`);
+    console.log(`New admin created: ${ADMIN_EMAIL}`);
   }
 
   await mongoose.disconnect();
@@ -45,6 +45,6 @@ const run = async () => {
 };
 
 run().catch((error) => {
-  console.error(`Khalad: ${(error as Error).message}`);
+  console.error(`Error: ${(error as Error).message}`);
   process.exit(1);
 });

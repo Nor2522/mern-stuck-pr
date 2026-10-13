@@ -44,11 +44,11 @@ function DialogForm({ onCreated }: { onCreated?: () => void }) {
     e.preventDefault()
 
     if (!title.trim() || !description.trim()) {
-      toast.error("Title iyo description waa loo baahan yahay")
+      toast.error("Title and description are required")
       return
     }
     if (!image) {
-      toast.error("Fadlan dooro sawir")
+      toast.error("Please select an image")
       return
     }
 
@@ -60,15 +60,15 @@ function DialogForm({ onCreated }: { onCreated?: () => void }) {
     try {
       setLoading(true)
       await axios.post(API_URL, formData,{withCredentials:true})  
-      toast.success("Post-ka waa la abuuray")
+      toast.success("Post created")
       onCreated?.()
       resetForm()
       setOpen(false)
     } catch (err) {
       if (axios.isAxiosError(err)) {
-        toast.error(err.response?.data?.message ?? "Server-ka lama gaari karo")
+        toast.error(err.response?.data?.message ?? "Unable to reach the server")
       } else {
-        toast.error("Wax khalad ah ayaa dhacay")
+        toast.error("Something went wrong")
       }
     } finally {
       setLoading(false)
@@ -85,7 +85,7 @@ function DialogForm({ onCreated }: { onCreated?: () => void }) {
           <DialogHeader>
             <DialogTitle>Create post</DialogTitle>
             <DialogDescription>
-              Geli title, description iyo sawir.
+              Enter title, description, and image.
             </DialogDescription>
           </DialogHeader>
 

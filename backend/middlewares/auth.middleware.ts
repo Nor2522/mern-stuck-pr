@@ -16,7 +16,7 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
     if (!token)
       return res
         .status(401)
-        .json({ success: false, message: "Unathorized please login" });
+        .json({ success: false, message: "Unauthorized, please log in" });
 
     const decoded = jwt.verify(token, JWT_SECRET as string) as {
       userId: string;
@@ -25,7 +25,7 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
     if (!user)
       return res.status(401).json({
         success: false,
-        message: "Unauthorized, user-kan ma jiro",
+        message: "Unauthorized, this user does not exist",
       });
 
     if (user.isBanned) {
@@ -39,7 +39,7 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
   } catch (error) {
     res.status(401).json({
       success: false,
-      message: "Unathorized",
+      message: "Unauthorized",
     });
   }
 };

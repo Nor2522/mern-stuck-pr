@@ -130,7 +130,7 @@ export const MyPostCard = ({ post }: { post: PostType }) => {
           <DialogHeader>
             <DialogTitle>Edit post</DialogTitle>
             <DialogDescription>
-              Cusboonaysii cinwaanka, description, category, tags ama sawirka.
+              Update the title, description, category, tags or image.
             </DialogDescription>
           </DialogHeader>
           {editOpen && (
@@ -148,9 +148,9 @@ export const MyPostCard = ({ post }: { post: PostType }) => {
       <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Ma hubtaa inaad tirtirto?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to delete?</AlertDialogTitle>
             <AlertDialogDescription>
-              Post-kan waa la tirtiri doonaa, lamana soo celin karo.
+              This post will be deleted and cannot be recovered.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -9,11 +9,11 @@ export const REPORT_REASONS = [
 ] as const
 
 export const reportSchema = z.object({
-  reason: z.string().min(1, "Fadlan dooro sabab"),
+  reason: z.string().min(1, "Please select a reason"),
   details: z
     .string()
     .trim()
-    .max(500, "Faahfaahintu waa ugu badan 500 xaraf")
+    .max(500, "Details must be at most 500 characters")
     .optional(),
 })
 

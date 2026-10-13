@@ -84,7 +84,7 @@ const EditPostDialog = ({
       formData.append("description", values.description)
       if (image) formData.append("image", image)
       await api.put(`/post/${post._id}`, formData)
-      toast.success("Post-ka waa la cusboonaysiiyay")
+      toast.success("Post updated")
       setOpen(false)
       onChanged?.()
     } catch (error) {
@@ -117,13 +117,13 @@ const EditPostDialog = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <DialogHeader>
             <DialogTitle>Edit post</DialogTitle>
-            <DialogDescription>Beddel title, description iyo sawir.</DialogDescription>
+            <DialogDescription>Update title, description, and image.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
             <Label htmlFor={`title-${post._id}`}>Title</Label>
             <Input
               id={`title-${post._id}`}
-              {...register("title", { required: "Title waa loo baahan yahay" })}
+              {...register("title", { required: "Title is required" })}
             />
             {errors.title && (
               <p className="text-xs text-destructive">{errors.title.message}</p>
@@ -134,7 +134,7 @@ const EditPostDialog = ({
             <Input
               id={`description-${post._id}`}
               {...register("description", {
-                required: "Description waa loo baahan yahay",
+                required: "Description is required",
               })}
             />
             {errors.description && (
@@ -182,7 +182,7 @@ const DeletePostDialog = ({
     try {
       setDeleting(true)
       await api.delete(`/post/${post._id}`)
-      toast.success("Post-ka waa la tirtiray")
+      toast.success("Post deleted")
       setOpen(false)
       onChanged?.()
     } catch (error) {
@@ -203,9 +203,9 @@ const DeletePostDialog = ({
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Ma hubtaa?</AlertDialogTitle>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            Post-kan waa la tirtiri doonaa, lamana soo celin karo.
+            This post will be deleted and cannot be recovered.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

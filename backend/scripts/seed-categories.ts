@@ -5,7 +5,7 @@ import { DB_URI } from "../config/env";
 
 dotenv.config();
 
-// Liiska categories-ka aasaasiga ah (slug waa la soo saaraa magaca)
+// Base category list (the slug is derived from the name)
 const categories = [
   "Web",
   "Mobile",
@@ -24,7 +24,7 @@ const slugify = (value: string) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-// Non-destructive: kaliya ku dar (upsert) categories aan horey u jirin
+// Non-destructive: only add (upsert) categories that do not already exist
 const run = async () => {
   await mongoose.connect(DB_URI, { retryWrites: false });
 
@@ -38,14 +38,14 @@ const run = async () => {
   }
 
   const total = await Category.countDocuments();
-  console.log(`Categories-ka la keydiyay: ${total}`);
-  console.log("Cusub lama tirtirin waxna lama beddelin.");
+  console.log(`Saved categories: ${total}`);
+  console.log("Categories added, nothing deleted or changed.");
 
   await mongoose.disconnect();
   process.exit(0);
 };
 
 run().catch((error) => {
-  console.error(`Khalad: ${(error as Error).message}`);
+  console.error(`Error: ${(error as Error).message}`);
   process.exit(1);
 });

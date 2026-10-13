@@ -11,7 +11,7 @@ export const getMe = async (): Promise<AuthUser | null> => {
     const { data } = await api.get<ApiSuccess<{ user: AuthUser }>>("/user/me")
     return data.data.user
   } catch (error) {
-    // 401 waa xaalad caadi ah marka isticmaalahu aanu soo galin.
+    // 401 is a normal case when user is not logged in.
     if (axios.isAxiosError(error) && error.response?.status === 401) {
       return null
     }

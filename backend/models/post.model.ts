@@ -15,7 +15,7 @@ const postSchema = new Schema(
       required: true,
       maxLength: 2000,
     },
-    // image waa ikhtiyaari: posts qoraal-keliya ah waa la ogol yahay
+    // image is optional: text-only posts are allowed
     image: {
       url: { type: String },
       publicId: { type: String },
@@ -34,7 +34,7 @@ const postSchema = new Schema(
       default: [],
       validate: {
         validator: (tags: string[]) => tags.length <= 5,
-        message: "tags waa ugu badan 5",
+        message: "tags must be at most 5",
       },
     },
     status: {

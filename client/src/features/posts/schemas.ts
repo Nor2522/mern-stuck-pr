@@ -12,20 +12,20 @@ export const postFormSchema = z.object({
   title: z
     .string()
     .trim()
-    .min(3, "Title waa ugu yaraan 3 xaraf")
-    .max(120, "Title waa ugu badan 120 xaraf"),
+    .min(3, "Title must be at least 3 characters")
+    .max(120, "Title must be at most 120 characters"),
   description: z
     .string()
     .trim()
-    .min(1, "Description waa loo baahan yahay")
-    .max(2000, "Description waa ugu badan 2000 xaraf"),
+    .min(1, "Description is required")
+    .max(2000, "Description must be at most 2000 characters"),
   category: z.string().optional(),
   tags: z
     .string()
     .optional()
     .refine(
       (value) => parseTags(value).length <= MAX_TAGS,
-      `Tags waa ugu badan ${MAX_TAGS}`,
+      `Tags must be at most ${MAX_TAGS}`,
     ),
 })
 

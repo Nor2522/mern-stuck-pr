@@ -14,7 +14,7 @@ export const useCreateReport = (postId: string) =>
       return data
     },
     onSuccess: (data) => {
-      toast.success(data.message ?? "Post-ka waa la soo sheegay")
+      toast.success(data.message ?? "Post reported")
     },
     onError: (error) => toast.error(getErrorMessage(error)),
   })

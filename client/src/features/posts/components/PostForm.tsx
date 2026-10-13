@@ -80,7 +80,7 @@ export const PostForm = ({
         <FieldLabel htmlFor="post-title">Title</FieldLabel>
         <Input
           id="post-title"
-          placeholder="Cinwaan gaaban oo cad"
+          placeholder="A short, clear title"
           aria-invalid={!!errors.title}
           {...form.register("title")}
         />
@@ -121,7 +121,7 @@ export const PostForm = ({
           <FieldLabel htmlFor="post-tags">Tags</FieldLabel>
           <Input
             id="post-tags"
-            placeholder={`Ilaa ${MAX_TAGS}: react, node, mongodb`}
+            placeholder={`Up to ${MAX_TAGS}: react, node, mongodb`}
             aria-invalid={!!errors.tags}
             {...form.register("tags")}
           />
@@ -130,7 +130,7 @@ export const PostForm = ({
       </div>
 
       <Field>
-        <FieldLabel htmlFor="post-image">Image (ikhtiyaari)</FieldLabel>
+        <FieldLabel htmlFor="post-image">Image (optional)</FieldLabel>
         <Input
           id="post-image"
           type="file"

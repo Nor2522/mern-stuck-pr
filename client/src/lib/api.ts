@@ -7,8 +7,8 @@ export const api = axios.create({
   withCredentials: true,
 })
 
-// Same-ynta rasmiga ah: cookie-ga "token". Haddii uu dhaco 401 (session dhamaaday)
-// waxaan nadiifinnaa cache-ka oo isticmaalaha u celinnaa bogga login-ka.
+// Auth mechanism: httpOnly cookie "token". If 401 occurs (session expired)
+// clear cache and redirect to login page.
 export const setupInterceptors = (
   queryClient: QueryClient,
   navigate: (to: string) => void,
@@ -21,7 +21,7 @@ export const setupInterceptors = (
         const isSessionCheck = url.includes("/user/me")
         if (!isSessionCheck) {
           queryClient.clear()
-          toast.error("Fadlan soo gal (please log in)")
+          toast.error("Please log in")
           navigate("/login")
         }
       }

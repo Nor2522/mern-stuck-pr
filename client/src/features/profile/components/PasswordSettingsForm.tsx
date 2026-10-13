@@ -33,7 +33,7 @@ export const PasswordSettingsForm = () => {
         newPassword: values.newPassword,
       })
       form.reset()
-      toast.success("Password-ka waa la beddelay")
+      toast.success("Password changed")
     } catch (error) {
       form.setError("currentPassword", { message: getErrorMessage(error) })
       toast.error(getErrorMessage(error))
@@ -44,7 +44,7 @@ export const PasswordSettingsForm = () => {
     <form onSubmit={onSubmit} noValidate>
       <FieldGroup>
         <Field data-invalid={!!errors.currentPassword}>
-          <FieldLabel htmlFor="current-password">Password-ka hadda</FieldLabel>
+          <FieldLabel htmlFor="current-password">Current password</FieldLabel>
           <PasswordInput
             id="current-password"
             autoComplete="current-password"
@@ -55,11 +55,11 @@ export const PasswordSettingsForm = () => {
         </Field>
 
         <Field data-invalid={!!errors.newPassword}>
-          <FieldLabel htmlFor="new-password">Password cusub</FieldLabel>
+          <FieldLabel htmlFor="new-password">New password</FieldLabel>
           <PasswordInput
             id="new-password"
             autoComplete="new-password"
-            placeholder="Ugu yaraan 8 xaraf, hal xaraf iyo hal lambar"
+            placeholder="At least 8 characters, one letter and one number"
             aria-invalid={!!errors.newPassword}
             {...form.register("newPassword")}
           />
@@ -67,11 +67,11 @@ export const PasswordSettingsForm = () => {
         </Field>
 
         <Field data-invalid={!!errors.confirmPassword}>
-          <FieldLabel htmlFor="confirm-password">Xaqiiji password-ka</FieldLabel>
+          <FieldLabel htmlFor="confirm-password">Confirm password</FieldLabel>
           <PasswordInput
             id="confirm-password"
             autoComplete="new-password"
-            placeholder="Ku celi password-ka cusub"
+            placeholder="Re-enter the new password"
             aria-invalid={!!errors.confirmPassword}
             {...form.register("confirmPassword")}
           />
@@ -80,7 +80,7 @@ export const PasswordSettingsForm = () => {
       </FieldGroup>
 
       <Button type="submit" className="mt-6 w-full sm:w-auto" disabled={busy}>
-        {busy ? "Waa la beddelayaa…" : "Beddel password-ka"}
+        {busy ? "Changing…" : "Change password"}
       </Button>
     </form>
   )

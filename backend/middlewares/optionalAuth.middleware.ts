@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config/env";
 import User from "../models/user.model";
 
-// Sida authorize laakiin ikhtiyaari: haddii token saxan uu jiro req.user
-// ayaa la buuxiyaa, haddii kale si fudud ayaa loo gudbaa (ma jiro 401).
+// Like authorize but optional: if valid token exists, populate req.user;
+// otherwise continue without user (no 401).
 const optionalAuth = async (
   req: Request,
   _res: Response,
@@ -29,7 +29,7 @@ const optionalAuth = async (
       }
     }
   } catch {
-    // token aan sax ahayn / dhacay -> sida soo-gal la'aan
+    // Invalid or expired token -> treat as unauthenticated
   }
   next();
 };

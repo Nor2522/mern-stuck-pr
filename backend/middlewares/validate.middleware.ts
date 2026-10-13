@@ -1,8 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
 import type { ZodType } from "zod";
 
-// Wuxuu hubinayaa req.body iyadoo la isticmaalayo zod schema.
-// Xog kasta oo aan sax ahayn -> 400 leh jawaab { success:false, message, errors }.
+// Validates req.body using zod schema.
+// If validation fails -> 400 with { success:false, message, errors }.
 export const validateBody =
   (schema: ZodType) => (req: Request, res: Response, next: NextFunction) => {
     const result = schema.safeParse(req.body);
@@ -15,12 +15,12 @@ export const validateBody =
 
       return res.status(400).json({
         success: false,
-        message: errors[0]?.message ?? "Xog aan sax ahayn",
+        message: errors[0]?.message ?? "Invalid data",
         errors,
       });
     }
 
-    // Ku beddel req.body xogta la nadiifiyay (trim/lowecase iwm)
+    // Replace req.body with sanitized data (trim/lowercase etc)
     req.body = result.data;
     return next();
   };

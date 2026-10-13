@@ -1,6 +1,6 @@
 import type { NextFunction, Request, RequestHandler, Response } from "express";
 
-// Waxay qabataa khaladaadka async-ga oo u gudbisa error middleware-ka
+// Catches async errors and passes them to the error middleware
 export const asyncHandler = (
   fn: (req: Request, res: Response, next: NextFunction) => Promise<unknown>,
 ): RequestHandler => {

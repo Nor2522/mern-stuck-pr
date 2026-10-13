@@ -46,8 +46,8 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T2.5 | Bookmarks (Saved) | DONE | _(see git log)_ | Delivered early in T2.0 (pull-forward) |
 | T2.6 | Profile | DONE | _(see git log)_ | Public `/u/:id` (avatar, name, bio, join date, published posts grid + count, 404 state); `/settings` (edit name/bio, avatar upload to Cloudinary with old-image destroy, duplicate-name guard, change password with current-password check); backend `GET /user/:id` (public fields only), `PUT /user/me` (multipart), `PUT /user/me/password`; `ProfilePage` updates navbar/cards/comments via react-query invalidation; added `Settings` menu item |
 | T2.7 | Report content | DONE | _(see git log)_ | `Report` model (`reporter, post, reason enum, details, status`, unique `{reporter,post}`, `resolvedBy/At` for T3.4); `POST /post/:id/report` (zod reason enum, own-post 404, duplicate 409 `"You have already reported this post"`); UI "⋯" `PostMenu` dropdown on card + detail with `ReportDialog` (reason select + optional details); report option hidden on own posts; post deletion now cascades likes/bookmarks/comments/reports |
-| T3.1 | Admin layout and dashboard | TODO | — | — |
-| T3.2 | Manage users | TODO | — | — |
+| T3.1 | Admin layout and dashboard | DONE | _(see git log)_ | `/api/admin/*` behind `authorize` + `requireRole("admin")`; `GET /api/admin/stats` (totals, 14-day daily new users/posts zero-filled, latest 5 users/posts); `/admin` sidebar layout (`AdminSidebar` + `AdminTopbar` breadcrumb/user menu) with nested routes (Dashboard live, others placeholders); `AdminDashboard` = 4 stat cards + two recharts bar charts + two recent lists with skeleton/error; added `recharts` |
+| T3.2 | Manage users | DONE | _(see git log)_ | `/api/admin/users` (search name/email, role/status filters, pagination, newest/oldest sort, per-user posts count) + `PATCH .../role`, `PATCH .../ban`, `DELETE .../:id`; safety rules on backend (no self role/ban/delete, last-admin protected); hard delete cascades the user's posts (Cloudinary destroy), likes, comments, bookmarks, reports, plus avatar; `/admin/users` table with filters + row actions (`DropdownMenu`) + delete `AlertDialog` |
 | T3.3 | Manage posts | TODO | — | — |
 | T3.4 | Moderation: comments and reports | TODO | — | — |
 | T3.5 | Manage categories | TODO | — | — |
@@ -229,6 +229,56 @@ Pre-existing lint findings (baseline, target for T0.2):
   `t26test<ts>`/`t26dup<ts>` accounts; the 3 temp posts and their reports were
   removed through the API (post-delete now cascades to reports), so no extra
   DB cleanup is needed from this task.
+- **T3.1 — admin layout & dashboard:** `routes/admin.route.ts` applies
+  `authorize` + `requireRole("admin")` to everything under `/api/admin`;
+  `controllers/admin.controller.ts` `GET /admin/stats` returns `totals`
+  (users/posts/comments/open reports), a zero-filled 14-day `daily` series for
+  new users & posts (Mongo `$dateToString` aggregation), and latest 5 users &
+  posts. Client: `/admin` is now a layout (`AdminSidebar` + `AdminTopbar`
+  breadcrumb/user menu) with nested routes — Dashboard is live, Users/Posts/
+  Comments/Reports/Categories render `AdminPlaceholder` for T3.2–T3.5.
+  `AdminDashboard` = 4 stat cards + two `recharts` `BarChart`s + two recent
+  lists (skeleton + error/retry). Added dependency `recharts`.
+- **T3.1 — SC evidence:** client `bun run build` PASS and `bun run lint` PASS
+  (0/0); backend `bunx tsc --noEmit` PASS. curl: `/api/admin/stats` → **401**
+  anon, **200** admin, **403** normal user (`"Ma lihid fasax (forbidden)"`).
+  Live CDP: admin `/admin` renders sidebar, cards (Users/Posts/Comments/Open
+  reports) + 2 charts + "Latest users"/"Latest posts"; a normal user on `/admin`
+  is redirected to `/`.
+- **T3.1 — admin account fix:** the seeded admin's email typo
+  `admin@gmial.com` was corrected to `admin@gmail.com` directly in the DB
+  (`backend/.env` `ADMIN_EMAIL` still needs the same manual update so future
+  `seed:admin` runs stay idempotent).
+- **T3.1 — new temp user:** `t31verify@example.com` / `Finalpass42` created to
+  verify the normal-user 403 / redirect. DB deletes need your approval
+  (accumulating: `t12test<ts>`, `t14temp<ts>`, `t14b<ts>`, `t21test<ts>`,
+  `t22test<ts>`, `t26test<ts>`, `t26dup<ts>`, `t31verify`).
+- **Language switch (default = English):** removed all Somali from the codebase
+  (code comments + user-facing strings, client and backend) and translated
+  everything to English; updated the `AGENTS.md` convention accordingly. Fixed
+  the two legacy English typos `"Unathorized"` and the model email message.
+- **T3.2 — manage users:** `GET /api/admin/users` supports `q` (name/email
+  regex, escaped), `role`, `status` (active/banned), `sort` (newest/oldest),
+  `page`/`limit`, and returns each user's `postsCount` (post aggregation for the
+  page). `PATCH /users/:id/role` and `/ban` toggle role/suspension;
+  `DELETE /users/:id` hard-deletes the account and all of its content (posts +
+  Cloudinary images, avatar, likes, comments, bookmarks, reports) — your chosen
+  behavior. Safety rules enforced server-side: cannot change/ban/delete yourself
+  (400) and the last admin is protected. Client `/admin/users` = filterable
+  table (search + role/status/sort selects), role/status badges, row action
+  dropdown, delete confirmation `AlertDialog`; own row shows "(you)" with no
+  actions.
+- **T3.2 — SC evidence:** client `bun run build` PASS, `bun run lint` PASS (0/0);
+  backend `bunx tsc --noEmit` PASS. curl (admin): list OK (total 24, pagination),
+  anon **401**, normal user **403**; self role/ban/delete → **400**
+  (`You cannot change your own role` / `You cannot ban yourself` /
+  `You cannot delete your own account`); invalid role value and bad id → 400;
+  ban → 200 then the banned user's `/me` → **403** `Account suspended`;
+  unban/role changes → 200; delete → 200 and the user disappears from the list.
+  Live CDP: `/admin/users` renders 10 rows with filters; a scripted run typed a
+  search (1 row), opened the row menu, chose "Delete user", confirmed in the
+  dialog → toast **"User deleted"** and the row removed. Disposable test users
+  were deleted through the API/UI (no new cleanup needed).
 - **T1.1 — API response shape changed (breaking for old client code):** the list
   now returns `data: { posts, pagination }` instead of `data: { post }`.
   `client/src/components/dashboard/Posts.tsx` still reads `data.data.post` and

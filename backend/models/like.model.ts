@@ -20,7 +20,7 @@ const likeSchema = new Schema(
   { timestamps: true },
 );
 
-// Hal like kaliya hal user + hal post
+// Only one like per user + post
 likeSchema.index({ user: 1, post: 1 }, { unique: true });
 
 export type LikeType = InferSchemaType<typeof likeSchema>;

@@ -37,7 +37,7 @@ export const NewPostDialog = () => {
         <DialogHeader>
           <DialogTitle>Create post</DialogTitle>
           <DialogDescription>
-            Wadaag wax aad dhistay ama baratay. Sawirku waa ikhtiyaari.
+            Share what you built or learned. Image is optional.
           </DialogDescription>
         </DialogHeader>
         {open && (

@@ -32,15 +32,15 @@ export const SettingsPage = () => {
     <div className="mx-auto max-w-3xl px-4 py-12">
       <h1 className="font-heading text-2xl font-semibold">Settings</h1>
       <p className="mt-2 text-muted-foreground">
-        Cusboonaysii profaylkaaga ama beddel password-ka.
+        Update your profile or change your password.
       </p>
 
       <div className="mt-8 space-y-8">
         <Card>
           <CardHeader>
-            <CardTitle>Profaylka</CardTitle>
+            <CardTitle>Profile</CardTitle>
             <CardDescription>
-              Magaca, bio-da iyo sawirka profaylka.
+              Your name, bio and profile picture.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -54,7 +54,7 @@ export const SettingsPage = () => {
           <CardHeader>
             <CardTitle>Password</CardTitle>
             <CardDescription>
-              Beddel password-ka koontadaada.
+              Change your account password.
             </CardDescription>
           </CardHeader>
           <CardContent>

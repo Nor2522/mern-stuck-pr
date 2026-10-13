@@ -7,11 +7,11 @@ import { HttpError } from "../middlewares/error.middleware";
 const DEFAULT_LIMIT = 10;
 const MAX_LIMIT = 50;
 
-// GET /api/post/:id/comments -> liiska (public, paginated)
+// GET /api/post/:id/comments -> list (public, paginated)
 export const getComments = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const parsedPage = Number.parseInt(String(req.query.page ?? "1"), 10);
@@ -41,30 +41,30 @@ export const getComments = async (req: Request, res: Response) => {
   });
 };
 
-// POST /api/post/:id/comments -> ku dar comment (auth)
+// POST /api/post/:id/comments -> add comment (auth)
 export const addComment = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const text = typeof req.body?.text === "string" ? req.body.text.trim() : "";
   if (text.length < 1) {
-    throw new HttpError(400, "Comment-ku waa madhan yahay");
+    throw new HttpError(400, "Comment cannot be empty");
   }
   if (text.length > 500) {
-    throw new HttpError(400, "Comment-ku waa ugu badan 500 xaraf");
+    throw new HttpError(400, "Comment must be at most 500 characters");
   }
 
   const post = await Post.findOne({ _id: id, status: "published" }).select(
     "_id",
   );
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   const comment = await Comment.create({
     post: post._id,
@@ -82,25 +82,25 @@ export const addComment = async (req: Request, res: Response) => {
   });
 };
 
-// DELETE /api/comment/:id -> qoraaga ama admin
+// DELETE /api/comment/:id -> owner or admin
 export const deleteComment = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Comment lama helin");
+    throw new HttpError(404, "Comment not found");
   }
 
   const comment = await Comment.findById(id);
-  if (!comment) throw new HttpError(404, "Comment lama helin");
+  if (!comment) throw new HttpError(404, "Comment not found");
 
   const isOwner = comment.author.toString() === currentUser._id.toString();
   const isAdmin = currentUser.role === "admin";
   if (!isOwner && !isAdmin) {
-    throw new HttpError(403, "Ma lihid fasax aad ku tirtirto comment-kan");
+    throw new HttpError(403, "You do not have permission to delete this comment");
   }
 
   await comment.deleteOne();

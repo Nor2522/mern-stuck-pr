@@ -5,15 +5,15 @@ export const updateProfileSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "magacu waa ugu yaraan 2 xaraf")
-    .max(50, "magacu waa ugu badan 50 xaraf")
+    .min(2, "name must be at least 2 characters")
+    .max(50, "name must be at most 50 characters")
     .optional(),
-  // bio madhan waa la ogol yahay (waxay tirtirtaa bio-da)
-  bio: z.string().trim().max(160, "bio waa ugu badan 160 xaraf").optional(),
+  // an empty bio is allowed (it clears the bio)
+  bio: z.string().trim().max(160, "bio must be at most 160 characters").optional(),
 });
 
 export const changePasswordSchema = z.object({
-  currentPassword: z.string().min(1, "password-ka hadda waa loo baahan yahay"),
+  currentPassword: z.string().min(1, "current password is required"),
   newPassword: passwordSchema,
 });
 

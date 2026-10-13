@@ -55,7 +55,7 @@ const Posts = ({
   }
 
   if (postData.length === 0) {
-    return <p className="text-muted-foreground">Weli post ma jiro</p>
+    return <p className="text-muted-foreground">No posts yet</p>
   }
 
   return (

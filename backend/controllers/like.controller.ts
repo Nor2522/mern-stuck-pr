@@ -4,23 +4,23 @@ import Like from "../models/like.model";
 import Post from "../models/post.model";
 import { HttpError } from "../middlewares/error.middleware";
 
-// POST /api/post/:id/like -> toggle (sameynta). Waa idempotent marka la eego
-// natiijta: riixid labaad waxay noqoneysaa unlike, mana dheeraado tiradu.
+// POST /api/post/:id/like -> toggle (like/unlike). Idempotent in effect:
+// pressing twice results in unlike; count won't go below zero.
 export const toggleLike = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const post = await Post.findOne({ _id: id, status: "published" }).select(
     "_id",
   );
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   const existing = await Like.findOneAndDelete({
     user: currentUser._id,
@@ -29,7 +29,7 @@ export const toggleLike = async (req: Request, res: Response) => {
 
   let liked: boolean;
   if (existing) {
-    // Unlike: hoos u dhig counts-ka laakiin ha noqon mid taban
+    // Unlike: decrement count but don't go below zero
     await Post.updateOne(
       { _id: post._id, likesCount: { $gt: 0 } },
       { $inc: { likesCount: -1 } },
@@ -41,7 +41,7 @@ export const toggleLike = async (req: Request, res: Response) => {
       await Post.updateOne({ _id: post._id }, { $inc: { likesCount: 1 } });
       liked = true;
     } catch (error) {
-      // unique index: haddii riixid degdeg ah laba jeer sameyso, hal like
+      // unique index: if user clicks quickly twice, treat as liked
       if ((error as { code?: number }).code === 11000) {
         liked = true;
       } else {

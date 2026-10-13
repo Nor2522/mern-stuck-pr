@@ -26,7 +26,7 @@ authrouter.post("/sign-up", signUpLimiter, validateBody(registerSchema), registe
 authrouter.post("/login", loginLimiter, validateBody(loginSchema), signIn);
 authrouter.post("/sign-out", signOut);
 
-// "/me" waa inuu ka horreeyaa "/:id" si looga fogaado in "me" loo arko id
+// "/me" must come before "/:id" so that "me" is not treated as an id
 authrouter.get("/me", authorize, asyncHandler(getMe));
 authrouter.put(
   "/me",
@@ -42,7 +42,7 @@ authrouter.put(
   asyncHandler(changePassword),
 );
 
-// Profaylka dadweynaha
+// Public profile
 authrouter.get("/:id", asyncHandler(getPublicProfile));
 
 export default authrouter;

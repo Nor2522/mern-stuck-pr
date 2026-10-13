@@ -20,7 +20,7 @@ import { useAuth } from "@/features/auth/auth-context"
 import { useDocumentTitle } from "@/hooks/useDocumentTitle"
 
 const LoginPage = () => {
-  useDocumentTitle("Soo gal")
+  useDocumentTitle("Log in")
   const { login } = useAuth()
 
   const form = useForm<LoginFormValues>({
@@ -34,11 +34,11 @@ const LoginPage = () => {
     try {
       const user = await signIn(values)
       login(user)
-      toast.success("Waad soo gashay")
+      toast.success("You are logged in")
     } catch (error) {
       const message = isAxiosError(error)
         ? (error.response?.data?.message ?? error.message)
-        : "Khalad ayaa dhacay"
+        : "Something went wrong"
       form.setError("root", { message })
       toast.error(message)
     }
@@ -48,9 +48,9 @@ const LoginPage = () => {
     <div className="mx-auto flex min-h-[70vh] max-w-md items-center px-4 py-12">
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>Ku soo dhawoow mar kale</CardTitle>
+          <CardTitle>Welcome back</CardTitle>
           <CardDescription>
-            Soo gal si aad u maamusho post-yadaada oo aad wax qorto.
+            Log in to manage your posts and write.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,7 +74,7 @@ const LoginPage = () => {
                 <PasswordInput
                   id="password"
                   autoComplete="current-password"
-                  placeholder="Geli password-kaaga"
+                  placeholder="Enter your password"
                   aria-invalid={!!errors.password}
                   {...form.register("password")}
                 />
@@ -89,17 +89,17 @@ const LoginPage = () => {
               className="mt-6 w-full"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Soo galaya…" : "Soo gal"}
+              {isSubmitting ? "Logging in…" : "Log in"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Ma haysatid akoon?{" "}
+            Don't have an account?{" "}
             <Link
               to="/register"
               className="font-medium text-foreground underline-offset-4 hover:underline"
             >
-              Isdiiwaangeli
+              Register
             </Link>
           </p>
         </CardContent>

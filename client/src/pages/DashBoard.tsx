@@ -53,7 +53,7 @@ const DashBoard = () => {
         <div>
           <h1 className="font-heading text-3xl font-semibold">Dashboard</h1>
           <p className="mt-2 text-muted-foreground">
-            Maamul post-yadaada oo abuur mid cusub.
+            Manage your posts and create a new one.
           </p>
         </div>
         <NewPostDialog />
@@ -98,9 +98,9 @@ const DashBoard = () => {
           </div>
         ) : items.length === 0 ? (
           <div className="mt-4 flex flex-col items-center gap-3 rounded-xl border border-dashed py-16 text-center">
-            <p className="font-medium">Weli post ma jiro</p>
+            <p className="font-medium">No posts yet</p>
             <p className="text-sm text-muted-foreground">
-              Abuur post-kaagii ugu horreeya.
+              Create your first post.
             </p>
             <NewPostDialog />
           </div>
@@ -123,7 +123,7 @@ const DashBoard = () => {
                   Previous
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Bog {page} / {totalPages}
+                  Page {page} / {totalPages}
                 </span>
                 <Button
                   variant="outline"

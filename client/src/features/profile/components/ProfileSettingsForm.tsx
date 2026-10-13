@@ -83,7 +83,7 @@ export const ProfileSettingsForm = () => {
             <AvatarFallback className="text-xl">{initial}</AvatarFallback>
           </Avatar>
           <div className="flex flex-col gap-2">
-            <FieldLabel htmlFor="avatar">Sawirka profaylka</FieldLabel>
+            <FieldLabel htmlFor="avatar">Profile picture</FieldLabel>
             <Input
               id="avatar"
               type="file"
@@ -98,14 +98,14 @@ export const ProfileSettingsForm = () => {
                 className="w-fit"
                 onClick={removeImage}
               >
-                <X /> Ka noqo sawirka
+                <X /> Remove image
               </Button>
             )}
           </div>
         </div>
 
         <Field data-invalid={!!errors.name}>
-          <FieldLabel htmlFor="profile-name">Magac</FieldLabel>
+          <FieldLabel htmlFor="profile-name">Name</FieldLabel>
           <Input
             id="profile-name"
             type="text"
@@ -122,7 +122,7 @@ export const ProfileSettingsForm = () => {
             id="profile-bio"
             rows={3}
             maxLength={MAX_BIO}
-            placeholder="Sheeg wax yar oo adiga kugu saabsan…"
+            placeholder="Say a little about yourself…"
             aria-invalid={!!errors.bio}
             {...form.register("bio")}
           />
@@ -131,7 +131,7 @@ export const ProfileSettingsForm = () => {
       </FieldGroup>
 
       <Button type="submit" className="mt-6 w-full sm:w-auto" disabled={busy}>
-        {busy ? "Waa la kaydinayaa…" : "Kaydi isbeddelka"}
+        {busy ? "Saving…" : "Save changes"}
       </Button>
     </form>
   )

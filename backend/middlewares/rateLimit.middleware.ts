@@ -7,10 +7,10 @@ const authLimiterOptions = {
   legacyHeaders: false,
   message: {
     success: false,
-    message: "Codsiyo badan ayaa la sameeyay, fadlan wax yar sug",
+    message: "Too many requests, please try again later",
   },
 };
 
-// Xaddidayaal gaar ah: login iyo sign-up mid kastaa leeyahay xisaabtiisa
+// Separate limits: login and sign-up each have their own counters
 export const loginLimiter = rateLimit(authLimiterOptions);
 export const signUpLimiter = rateLimit(authLimiterOptions);

@@ -53,7 +53,7 @@ const reportSchema = new Schema(
   { timestamps: true },
 );
 
-// Hal isticmaale kaliya ayaa hal post soo sheegi kara
+// Only one user can report a post
 reportSchema.index({ reporter: 1, post: 1 }, { unique: true });
 
 export type ReportType = InferSchemaType<typeof reportSchema>;

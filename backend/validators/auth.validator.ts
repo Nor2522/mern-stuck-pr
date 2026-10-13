@@ -1,25 +1,25 @@
 import { z } from "zod";
 
-// password: ugu yaraan 8 xaraf, hal xaraf iyo hal lambar
+// password: at least 8 characters, one letter and one number
 export const passwordSchema = z
   .string()
-  .min(8, "password waa ugu yaraan 8 xaraf")
-  .regex(/[A-Za-z]/, "password waa inuu lahaadaa ugu yaraan hal xaraf")
-  .regex(/[0-9]/, "password waa inuu lahaadaa ugu yaraan hal lambar");
+  .min(8, "password must be at least 8 characters")
+  .regex(/[A-Za-z]/, "password must contain at least one letter")
+  .regex(/[0-9]/, "password must contain at least one number");
 
 export const registerSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "magacu waa ugu yaraan 2 xaraf")
-    .max(50, "magacu waa ugu badan 50 xaraf"),
-  email: z.string().trim().toLowerCase().email("email sax ah geli"),
+    .min(2, "name must be at least 2 characters")
+    .max(50, "name must be at most 50 characters"),
+  email: z.string().trim().toLowerCase().email("enter a valid email"),
   password: passwordSchema,
 });
 
 export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email("email sax ah geli"),
-  password: z.string().min(1, "password waa loo baahan yahay"),
+  email: z.string().trim().toLowerCase().email("enter a valid email"),
+  password: z.string().min(1, "password is required"),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;

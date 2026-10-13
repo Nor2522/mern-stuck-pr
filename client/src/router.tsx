@@ -1,6 +1,9 @@
 import { createBrowserRouter } from "react-router"
 import App from "./App"
 import AdminPage from "./pages/AdminPage"
+import AdminDashboard from "./pages/admin/AdminDashboard"
+import AdminPlaceholder from "./pages/admin/AdminPlaceholder"
+import AdminUsersPage from "./pages/admin/AdminUsersPage"
 import DashBoard from "./pages/DashBoard"
 import ExplorePage from "./pages/ExplorePage"
 import HomePage from "./pages/HomePage"
@@ -63,12 +66,35 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: "admin/*",
+        path: "admin",
         element: (
           <RoleRoute role="admin">
             <AdminPage />
           </RoleRoute>
         ),
+        children: [
+          { index: true, element: <AdminDashboard /> },
+          {
+            path: "users",
+            element: <AdminUsersPage />,
+          },
+          {
+            path: "posts",
+            element: <AdminPlaceholder title="Posts" task="T3.3" />,
+          },
+          {
+            path: "comments",
+            element: <AdminPlaceholder title="Comments" task="T3.4" />,
+          },
+          {
+            path: "reports",
+            element: <AdminPlaceholder title="Reports" task="T3.4" />,
+          },
+          {
+            path: "categories",
+            element: <AdminPlaceholder title="Categories" task="T3.5" />,
+          },
+        ],
       },
       { path: "*", element: <NotFoundPage /> },
     ],

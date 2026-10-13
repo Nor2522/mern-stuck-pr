@@ -19,16 +19,16 @@ const register = async (req: Request, res: Response) => {
     if (await User.exists({ email })) {
       return res.status(400).json({
         success: false,
-        message: "Email-kan hore ayaa loo isticmaalay",
-        errors: [{ field: "email", message: "Email-kan hore ayaa loo isticmaalay" }],
+        message: "This email is already taken",
+        errors: [{ field: "email", message: "This email is already taken" }],
       });
     }
 
     if (await User.exists({ name })) {
       return res.status(400).json({
         success: false,
-        message: "Magacan hore ayaa loo isticmaalay",
-        errors: [{ field: "name", message: "Magacan hore ayaa loo isticmaalay" }],
+        message: "This name is already taken",
+        errors: [{ field: "name", message: "This name is already taken" }],
       });
     }
 

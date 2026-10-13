@@ -28,7 +28,7 @@ export const GuestRoute = ({ children }: { children: ReactNode }) => {
 
   if (isLoading) return <LoadingScreen />
   if (user) {
-    // Marka la soo galo, ku noqo bogga isticmaalahu ka yimid haddii uu jiro.
+    // When logged in, redirect to the page the user came from if it exists.
     const from = (location.state as { from?: string } | null)?.from
     return <Navigate to={from ?? "/"} replace />
   }

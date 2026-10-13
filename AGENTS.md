@@ -21,7 +21,7 @@ there is no workspace tooling or root scripts.
 - Client import alias `@` -> `client/src` (shadcn `base-nova` style; add UI via `client/components.json`).
 
 ## Conventions / gotchas
-- Code comments and user-facing message strings are in **Somali** — keep that style when editing.
+- Code comments and user-facing message strings are in **English** — keep that style when editing.
 - Imports mix `./x.ts` and `./x`; both work under `moduleResolution: bundler`. Match the surrounding file.
 - Root `README.md` is stale (`bun run index.ts` does not exist).
 - Current rough edges (verify before relying on): `auth.route.ts` maps `/sign-out` to `register`;

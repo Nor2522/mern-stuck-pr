@@ -12,22 +12,22 @@ const populate = [
   { path: "category", select: "name slug" },
 ];
 
-// POST /api/post/:id/bookmark -> toggle (keyd / ka saar)
+// POST /api/post/:id/bookmark -> toggle (bookmark / remove)
 export const toggleBookmark = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const { id } = req.params;
   if (!mongoose.isValidObjectId(id)) {
-    throw new HttpError(404, "Post lama helin");
+    throw new HttpError(404, "Post not found");
   }
 
   const post = await Post.findOne({ _id: id, status: "published" }).select(
     "_id",
   );
-  if (!post) throw new HttpError(404, "Post lama helin");
+  if (!post) throw new HttpError(404, "Post not found");
 
   const existing = await Bookmark.findOneAndDelete({
     user: currentUser._id,
@@ -53,12 +53,12 @@ export const toggleBookmark = async (req: Request, res: Response) => {
   res.status(200).json({ success: true, data: { bookmarked } });
 };
 
-// GET /api/bookmarks -> posts-ka isticmaalaha keydsaday (auth, paginated).
-// Hidden/deleted posts waa la iska tuuraa si naxariis leh.
+// GET /api/bookmarks -> posts bookmarked by the user (auth, paginated).
+// Hidden/deleted posts are filtered out gracefully.
 export const getBookmarks = async (req: Request, res: Response) => {
   const currentUser = req.user;
   if (!currentUser) {
-    throw new HttpError(401, "Ma aad soo galin (unauthorized)");
+    throw new HttpError(401, "You are not logged in (unauthorized)");
   }
 
   const parsedPage = Number.parseInt(String(req.query.page ?? "1"), 10);

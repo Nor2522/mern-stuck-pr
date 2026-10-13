@@ -3,12 +3,12 @@ import { REPORT_REASONS } from "../models/report.model";
 
 export const reportSchema = z.object({
   reason: z.enum(REPORT_REASONS, {
-    message: "Fadlan dooro sababta",
+    message: "Please select a reason",
   }),
   details: z
     .string()
     .trim()
-    .max(500, "Faahfaahintu waa ugu badan 500 xaraf")
+    .max(500, "Details must be at most 500 characters")
     .optional(),
 });
 
