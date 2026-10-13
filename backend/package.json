@@ -5,6 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "tsx watch server.ts",
+    "test": "bun test",
     "prod": "bun --env-file=local.production.env run backend/config/env.ts && bun run backend/server.ts",
     "seed:admin": "bun run scripts/seed-admin.ts",
     "seed:categories": "bun run scripts/seed-categories.ts",
@@ -20,8 +21,11 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/ms": "^2.1.0",
     "@types/multer": "^2.2.0",
+    "@types/supertest": "^7.2.1",
     "dotenv-cli": "^11.0.0",
+    "mongodb-memory-server": "^11.3.0",
     "nodemon": "^3.1.14",
+    "supertest": "^7.3.1",
     "tsx": "^4.23.12"
   },
   "peerDependencies": {

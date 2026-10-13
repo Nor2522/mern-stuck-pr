@@ -52,7 +52,7 @@ Pre-existing lint findings (baseline, target for T0.2):
 | T3.4 | Moderation: comments and reports | DONE | _(see git log)_ | `/api/admin/reports` (status filter open/resolved/dismissed, paginated, post+reporter+resolvedBy populated) + `PATCH /admin/reports/:id` (resolve/dismiss, records `resolvedBy`/`resolvedAt`); `/api/admin/comments` (search + pagination, author+post populated) + `DELETE /admin/comments/:id` (decrements `commentsCount`); `/admin/reports` tabbed table (segmented Open/Resolved/Dismissed, row actions resolve/dismiss/hide post/open/delete post) and `/admin/comments` table (search + delete) replace their placeholders |
 | T3.5 | Manage categories | DONE | _(this commit)_ | Backend: `GET/POST /api/admin/categories`, `PATCH/DELETE /api/admin/categories/:id` (auto-slug, friendly 409 on duplicate name/slug, per-category `postsCount`, delete blocked with 409 while posts remain, `?reassignTo=<id>` moves posts then deletes). Client: `/admin/categories` table + create/rename `Dialog` (RHF + zod) + delete `AlertDialog` with reassign `FilterSelect`; invalidates admin + public `categories` keys. New `backend/utils/slugify.ts`. |
 | T4.1 | Security hardening review | DONE | _(this commit)_ | Audited every route (auth/role/ownership + zod inputs); added `writeLimiter` (120/15min) to all write endpoints, zod for the comment body + public list queries, upload allowlist (`files:1`, JPEG/PNG/WebP/GIF) and `MulterError`→400; cookie flags/helmet/logs confirmed; no secrets in branch history |
-| T4.2 | Tests | TODO | — | — |
+| T4.2 | Tests | DONE | _(this commit)_ | Split `app.ts` (exported Express app) from `server.ts` (listen + DB) so `supertest` can drive the API; `backend/tests/api.test.ts` — 12 tests on `mongodb-memory-server` covering auth (register/login/me/logout, NoSQL-injection 400, duplicate email 400), posts (public list, create 201, update/delete owner 200 + non-owner 403), admin (user 403 / admin 200, self role/ban 400, ban → 403 `Account suspended`), likes toggle and comments (add 201 + empty 400 + list); `test` script + `supertest`/`mongodb-memory-server` devDeps |
 | T4.3 | UX polish pass | TODO | — | — |
 | T4.4 | Docs and release prep | TODO | — | — |
 
@@ -194,6 +194,20 @@ Pre-existing lint findings (baseline, target for T0.2):
   non-image upload → **400** `Only JPEG, PNG, WebP or GIF images are allowed`;
   6 MB image → **400** `Image is too large (max 5MB)`. Throwaway `verify_t41_`
   user deleted afterwards (0 remaining).
+- **T4.2 — backend tests:** added `backend/tests/api.test.ts` (12 tests, 44
+  assertions) run with `bun test`, using `supertest` against the exported
+  `backend/app.ts` and an in-memory MongoDB (`mongodb-memory-server`) that is
+  never the dev DB. Coverage: auth register→login→`/me`→logout (+ `me` rejects
+  `password`), NoSQL-injection login body → **400**, duplicate email → **400**;
+  posts public list, create **201**, owner update **200** vs non-owner **403**,
+  owner delete **200** vs non-owner **403** then **404**; admin `stats` user
+  **403** / admin **200**, self role/ban → **400** with the exact messages, ban →
+  target `/me` **403** `Account suspended`; like toggle on/off (`liked`/
+  `likesCount`) and comments (empty body **400**, add **201**, list). New
+  `backend/app.ts` (app only) keeps `server.ts` as the `listen` + `connectDB`
+  entry point. Dev deps added: `supertest`, `@types/supertest`,
+  `mongodb-memory-server`. **SC evidence:** `cd backend && bun run test` →
+  `12 pass / 0 fail / 44 expect() calls` (exit 0); `bunx tsc --noEmit` PASS.
 - **T1.2 — backend gap fixed in this task:** `GET /api/user/me` and `POST
   /api/user/login` only returned `_id/name/email`, so the role-aware navbar was
   impossible. Both now also return `role` (defaulting to `"user"`), `avatar`
