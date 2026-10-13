@@ -36,6 +36,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   useAdminReports,
   useDeleteAdminPost,
@@ -105,21 +106,22 @@ const AdminReportsPage = () => {
         </p>
       </header>
 
-      <div className="mt-6 inline-flex rounded-lg border p-0.5">
-        {TABS.map((tab) => (
-          <Button
-            key={tab.value}
-            variant={status === tab.value ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => {
-              setStatus(tab.value)
-              setPage(1)
-            }}
-          >
-            {tab.label}
-          </Button>
-        ))}
-      </div>
+      <Tabs
+        value={status}
+        onValueChange={(value) => {
+          setStatus(value as ReportStatus)
+          setPage(1)
+        }}
+        className="mt-6"
+      >
+        <TabsList>
+          {TABS.map((tab) => (
+            <TabsTrigger key={tab.value} value={tab.value}>
+              {tab.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <div className="mt-4 rounded-xl border">
         <Table className="min-w-200">
