@@ -78,7 +78,7 @@ function DialogForm({ onCreated }: { onCreated?: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
-        render={<Button className="bg-slate-800">Create new post</Button>}
+        render={<Button className="bg-primary text-primary-foreground">Create new post</Button>}
       />
       <DialogContent className="sm:max-w-sm">
         <form onSubmit={handleSubmit} className="space-y-4">

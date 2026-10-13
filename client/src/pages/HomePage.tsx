@@ -40,9 +40,11 @@ const HomePage = () => {
 
   return (
     <div className="mx-auto max-w-6xl px-4">
-      <section className="py-16 text-center sm:py-24">
+      <section className="relative isolate py-20 text-center sm:py-28">
+        <div aria-hidden className="hero-glow" />
         <h1 className="mx-auto max-w-3xl font-heading text-4xl font-semibold tracking-tight sm:text-5xl">
-          Programmers helping each other stay motivated
+          Programmers helping each other stay{" "}
+          <span className="text-primary">motivated</span>
         </h1>
         <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
           A community of programmers sharing what they build, learn and

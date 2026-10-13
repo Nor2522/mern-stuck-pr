@@ -24,7 +24,7 @@ export const PostCard = ({ post }: { post: PostType }) => {
   const dateLabel = timeAgo(post.createdAt)
 
   return (
-    <Card className="group h-full overflow-hidden transition-colors hover:border-primary/40">
+    <Card className="group h-full overflow-hidden hover:border-primary/50 hover:shadow-[0_0_0_1px_color-mix(in_oklab,var(--primary)_35%,transparent),0_8px_30px_-12px_color-mix(in_oklab,var(--primary)_45%,transparent)]">
       <Link
         to={`/posts/${post._id}`}
         className="flex flex-col gap-(--card-spacing)"
