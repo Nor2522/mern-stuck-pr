@@ -14,7 +14,7 @@ const getStoredTheme = (): Theme => {
   const stored = localStorage.getItem(STORAGE_KEY)
   return stored === "light" || stored === "dark" || stored === "system"
     ? stored
-    : "dark"
+    : "system"
 }
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
