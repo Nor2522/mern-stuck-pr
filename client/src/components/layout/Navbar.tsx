@@ -27,6 +27,7 @@ import type { AuthUser } from "@/types/user"
 const navLinks = [
   { to: "/", label: "Home" },
   { to: "/explore", label: "Explore" },
+  { to: "/about", label: "About" },
 ]
 
 const initials = (name: string) => name.trim().charAt(0).toUpperCase() || "?"

@@ -1,5 +1,6 @@
 import { createBrowserRouter } from "react-router"
 import App from "./App"
+import AboutPage from "./pages/AboutPage"
 import AdminPage from "./pages/AdminPage"
 import AdminCategoriesPage from "./pages/admin/AdminCategoriesPage"
 import AdminCommentsPage from "./pages/admin/AdminCommentsPage"
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "explore", element: <ExplorePage /> },
+      { path: "about", element: <AboutPage /> },
       { path: "posts/:id", element: <PostDetailPage /> },
       { path: "u/:id", element: <ProfilePage /> },
       {
