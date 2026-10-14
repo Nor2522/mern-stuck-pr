@@ -275,7 +275,11 @@ const AdminPostsPage = () => {
                         <DropdownMenuContent align="end" className="min-w-44">
                           <DropdownMenuItem
                             render={
-                              <Link to={`/posts/${row._id}`} target="_blank" />
+                              <Link
+                                to={`/posts/${row._id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              />
                             }
                           >
                             <ExternalLink />

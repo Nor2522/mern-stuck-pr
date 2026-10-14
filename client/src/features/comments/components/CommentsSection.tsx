@@ -147,6 +147,8 @@ export const CommentsSection = ({
       {user ? (
         <form onSubmit={handleSubmit} className="mt-4">
           <Textarea
+            id="comment-body"
+            name="comment"
             value={text}
             onChange={(event) => setText(event.target.value)}
             placeholder="Share what you think…"

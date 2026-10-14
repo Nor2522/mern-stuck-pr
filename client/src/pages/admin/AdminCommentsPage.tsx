@@ -217,7 +217,9 @@ const AdminCommentsPage = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Actions for comment"
+                              aria-label={`Actions for comment by ${
+                                row.author?.name ?? "unknown author"
+                              }`}
                               disabled={isBusy}
                             >
                               <Ellipsis />
@@ -231,6 +233,7 @@ const AdminCommentsPage = () => {
                                 <Link
                                   to={`/posts/${row.post._id}`}
                                   target="_blank"
+                                  rel="noopener noreferrer"
                                 />
                               }
                             >

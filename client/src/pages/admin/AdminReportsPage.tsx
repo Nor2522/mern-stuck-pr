@@ -264,7 +264,9 @@ const AdminReportsPage = () => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label={`Actions for report`}
+                              aria-label={`Actions for report on ${
+                                row.post?.title ?? "post"
+                              }`}
                               disabled={isBusy}
                             >
                               <Ellipsis />
@@ -320,6 +322,7 @@ const AdminReportsPage = () => {
                                   <Link
                                     to={`/posts/${row.post._id}`}
                                     target="_blank"
+                                    rel="noopener noreferrer"
                                   />
                                 }
                               >
