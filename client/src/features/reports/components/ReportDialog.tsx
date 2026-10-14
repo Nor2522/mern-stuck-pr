@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -18,7 +17,6 @@ import {
   type ReportFormValues,
 } from "@/features/reports/schemas"
 import { useCreateReport } from "@/features/reports/api"
-import { getErrorMessage } from "@/lib/error"
 
 const selectClass =
   "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
@@ -44,21 +42,27 @@ export const ReportDialog = ({
   const { errors, isSubmitting } = form.formState
   const busy = isSubmitting || createReport.isPending
 
+  // Reset the form whenever the dialog closes so a cancelled report does
+  // not leak its values into the next open.
+  const handleOpenChange = (next: boolean) => {
+    if (!next) form.reset()
+    onOpenChange(next)
+  }
+
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       await createReport.mutateAsync({
         reason: values.reason,
         details: values.details ?? "",
       })
-      onOpenChange(false)
-      form.reset()
-    } catch (error) {
-      toast.error(getErrorMessage(error))
+      handleOpenChange(false)
+    } catch {
+      // Errors are surfaced by useCreateReport's onError toast.
     }
   })
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Report post</DialogTitle>
@@ -109,7 +113,7 @@ export const ReportDialog = ({
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
             >
               Cancel
             </Button>
