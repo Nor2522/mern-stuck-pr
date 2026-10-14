@@ -161,6 +161,29 @@ export const Navbar = () => {
                         {link.label}
                       </SheetClose>
                     ))}
+                    {[
+                      { to: `/u/${user._id}`, label: "Profile" },
+                      { to: "/dashboard", label: "My posts" },
+                      { to: "/saved", label: "Saved" },
+                      { to: "/settings", label: "Settings" },
+                      ...(user.role === "admin"
+                        ? [{ to: "/admin", label: "Admin" }]
+                        : []),
+                    ].map((link) => (
+                      <SheetClose
+                        key={link.to}
+                        render={
+                          <Button
+                            variant="ghost"
+                            className="justify-start"
+                            nativeButton={false}
+                            render={<Link to={link.to} />}
+                          />
+                        }
+                      >
+                        {link.label}
+                      </SheetClose>
+                    ))}
                     <SheetClose
                       render={
                         <Button
