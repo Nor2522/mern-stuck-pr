@@ -70,36 +70,38 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      { path: "*", element: <NotFoundPage /> },
+    ],
+  },
+  {
+    path: "/admin",
+    element: (
+      <RoleRoute role="admin">
+        <AdminPage />
+      </RoleRoute>
+    ),
+    errorElement: <RouteErrorPage />,
+    children: [
+      { index: true, element: <AdminDashboard /> },
       {
-        path: "admin",
-        element: (
-          <RoleRoute role="admin">
-            <AdminPage />
-          </RoleRoute>
-        ),
-        children: [
-          { index: true, element: <AdminDashboard /> },
-          {
-            path: "users",
-            element: <AdminUsersPage />,
-          },
-          {
-            path: "posts",
-            element: <AdminPostsPage />,
-          },
-          {
-            path: "comments",
-            element: <AdminCommentsPage />,
-          },
-          {
-            path: "reports",
-            element: <AdminReportsPage />,
-          },
-          {
-            path: "categories",
-            element: <AdminCategoriesPage />,
-          },
-        ],
+        path: "users",
+        element: <AdminUsersPage />,
+      },
+      {
+        path: "posts",
+        element: <AdminPostsPage />,
+      },
+      {
+        path: "comments",
+        element: <AdminCommentsPage />,
+      },
+      {
+        path: "reports",
+        element: <AdminReportsPage />,
+      },
+      {
+        path: "categories",
+        element: <AdminCategoriesPage />,
       },
       { path: "*", element: <NotFoundPage /> },
     ],
