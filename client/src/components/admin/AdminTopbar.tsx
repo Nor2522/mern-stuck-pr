@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -69,12 +70,14 @@ export const AdminTopbar = () => {
             }
           />
           <DropdownMenuContent align="end" className="min-w-52">
-            <DropdownMenuLabel>
-              <span className="block text-sm font-medium text-foreground">
-                {user.name}
-              </span>
-              <span className="block truncate font-normal">{user.email}</span>
-            </DropdownMenuLabel>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>
+                <span className="block text-sm font-medium text-foreground">
+                  {user.name}
+                </span>
+                <span className="block truncate font-normal">{user.email}</span>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem render={<Link to="/" />}>
               Back to site
