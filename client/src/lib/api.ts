@@ -17,13 +17,9 @@ export const setupInterceptors = (
     (response) => response,
     (error: unknown) => {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
-        const url = error.config?.url ?? ""
-        const isSessionCheck = url.includes("/user/me")
-        if (!isSessionCheck) {
-          queryClient.clear()
-          toast.error("Please log in")
-          navigate("/login")
-        }
+        queryClient.clear()
+        toast.error("Please log in")
+        navigate("/login")
       }
       return Promise.reject(error)
     },

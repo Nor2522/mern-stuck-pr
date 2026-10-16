@@ -11,6 +11,7 @@ import {
   writeLimiter,
 } from "../middlewares/rateLimit.middleware.ts";
 import authorize from "../middlewares/auth.middleware.ts";
+import optionalAuth from "../middlewares/optionalAuth.middleware.ts";
 import upload from "../middlewares/uploade.middleware.ts";
 import { validateBody } from "../middlewares/validate.middleware.ts";
 import { loginSchema, registerSchema } from "../validators/auth.validator.ts";
@@ -28,7 +29,8 @@ authrouter.post("/login", loginLimiter, validateBody(loginSchema), signIn);
 authrouter.post("/sign-out", signOut);
 
 // "/me" must come before "/:id" so that "me" is not treated as an id
-authrouter.get("/me", authorize, asyncHandler(getMe));
+// optionalAuth: anonymous session check returns 200 with user: null (no 401 noise)
+authrouter.get("/me", optionalAuth, asyncHandler(getMe));
 authrouter.put(
   "/me",
   authorize,
