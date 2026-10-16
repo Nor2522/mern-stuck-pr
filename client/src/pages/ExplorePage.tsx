@@ -129,7 +129,9 @@ const ExplorePage = () => {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <header className="max-w-2xl">
-        <h1 className="font-heading text-3xl font-semibold">Explore posts</h1>
+        <h1 className="font-heading text-3xl font-bold tracking-tight">
+          Explore posts
+        </h1>
         <p className="mt-2 text-muted-foreground">
           Search progress updates, lessons and wins shared by the community.
         </p>
@@ -226,7 +228,7 @@ const ExplorePage = () => {
       </div>
 
       {isLoading ? (
-        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: PAGE_SIZE }).map((_, index) => (
             <PostCardSkeleton key={index} />
           ))}
@@ -255,7 +257,7 @@ const ExplorePage = () => {
           )}
         </div>
       ) : (
-        <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <PostCard key={post._id} post={post} />
           ))}
