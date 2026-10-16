@@ -26,10 +26,10 @@ const meShape = (user: {
 export const getMe = async (req: Request, res: Response) => {
   const user = req.user;
 
+  // Anonymous session check: 200 with user null instead of 401, so logged-out
+  // visitors don't produce console/network noise on every page load.
   if (!user) {
-    return res
-      .status(401)
-      .json({ success: false, message: "You are not logged in (unauthorized)" });
+    return res.status(200).json({ success: true, data: { user: null } });
   }
 
   return res.status(200).json({ success: true, data: { user: meShape(user) } });

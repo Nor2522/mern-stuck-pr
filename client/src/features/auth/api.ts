@@ -1,4 +1,3 @@
-import axios from "axios"
 import { api } from "@/lib/api"
 import type { ApiSuccess } from "@/types/api"
 import type { AuthUser, LoginResponse } from "@/types/user"
@@ -6,17 +5,12 @@ import type { LoginFormValues, RegisterFormValues } from "./schemas"
 
 export const meQueryKey = ["me"] as const
 
+// Anonymous sessions get 200 with user: null (no 401 for logged-out visitors).
 export const getMe = async (): Promise<AuthUser | null> => {
-  try {
-    const { data } = await api.get<ApiSuccess<{ user: AuthUser }>>("/user/me")
-    return data.data.user
-  } catch (error) {
-    // 401 is a normal case when user is not logged in.
-    if (axios.isAxiosError(error) && error.response?.status === 401) {
-      return null
-    }
-    throw error
-  }
+  const { data } = await api.get<ApiSuccess<{ user: AuthUser | null }>>(
+    "/user/me",
+  )
+  return data.data.user
 }
 
 export const signIn = async (values: LoginFormValues): Promise<AuthUser> => {

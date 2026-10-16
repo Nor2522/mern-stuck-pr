@@ -81,7 +81,14 @@ describe("auth", () => {
     expect(logout.status).toBe(200);
 
     const afterLogout = await agent.get("/api/user/me");
-    expect(afterLogout.status).toBe(401);
+    expect(afterLogout.status).toBe(200);
+    expect(afterLogout.body.data.user).toBeNull();
+  });
+
+  it("returns 200 with a null user for an anonymous session check", async () => {
+    const res = await request(app).get("/api/user/me");
+    expect(res.status).toBe(200);
+    expect(res.body.data.user).toBeNull();
   });
 
   it("rejects a NoSQL-injection login body with 400", async () => {
@@ -203,7 +210,7 @@ describe("admin", () => {
     expect(selfBan.body.message).toBe("You cannot ban yourself");
   });
 
-  it("suspends a user so their session is rejected with 403", async () => {
+  it("suspends a user so their session is rejected on protected routes", async () => {
     const admin = await createUser({
       name: "Admin",
       email: "admin@example.com",
@@ -217,9 +224,18 @@ describe("admin", () => {
       .send({ isBanned: true });
     expect(ban.status).toBe(200);
 
+    // Session probe treats a banned user as anonymous (200, null user).
     const me = await request(app).get("/api/user/me").set("Cookie", cookie(target));
-    expect(me.status).toBe(403);
-    expect(me.body.message).toBe("Account suspended");
+    expect(me.status).toBe(200);
+    expect(me.body.data.user).toBeNull();
+
+    // Protected routes still reject the banned session with 403.
+    const protectedRoute = await request(app)
+      .put("/api/user/me")
+      .set("Cookie", cookie(target))
+      .send({ name: "Target" });
+    expect(protectedRoute.status).toBe(403);
+    expect(protectedRoute.body.message).toBe("Account suspended");
   });
 });
 
