@@ -44,7 +44,7 @@ export const PostActions = ({
         size={size}
         onClick={onLike}
         aria-pressed={post.likedByMe}
-        aria-label="Like post"
+        aria-label={`Like post (${post.likesCount} likes)`}
       >
         <Heart
           className={cn(post.likedByMe && "fill-destructive text-destructive")}
@@ -58,7 +58,7 @@ export const PostActions = ({
         size={size}
         nativeButton={false}
         render={<Link to={`/posts/${post._id}#comments`} />}
-        aria-label="View comments"
+        aria-label={`View comments (${post.commentsCount} comments)`}
       >
         <MessageSquare />
         <span className="ml-1 text-xs tabular-nums">{post.commentsCount}</span>
