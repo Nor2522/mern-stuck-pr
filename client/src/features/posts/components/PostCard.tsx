@@ -28,7 +28,6 @@ export const PostCard = ({ post }: { post: PostType }) => {
       <Link
         to={`/posts/${post._id}`}
         className="group/link flex flex-col gap-(--card-spacing)"
-        aria-label={post.title}
       >
         {post.image?.url ? (
           <img
